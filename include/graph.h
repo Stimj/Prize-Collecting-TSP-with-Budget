@@ -10,12 +10,10 @@
 
 #pragma once
 
-#include <stdio.h>
 #include <climits>
 #include <iostream>
 #include <list>
 #include <memory>
-#include <set>
 #include <unordered_map>
 #include <vector>
 
@@ -79,7 +77,7 @@ class Vertex {
 class Graph {
  private:
   std::unordered_map<int, std::shared_ptr<Vertex>>
-      vertexunordered_map;            // unordered_map of vertex ids to vertex data structures
+      vertex_map;            // unordered_map of vertex ids to vertex data structures
   std::list<int> vertices;  // list of vertex ids
   std::list<std::shared_ptr<Edge>> edges;  // list of edge pointers
   double W;                                // total weight of edges

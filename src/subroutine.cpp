@@ -9,6 +9,7 @@
 //
 
 #include "subroutine.h"
+
 double eps = 1.0e-15;   // Level of precision for general ties
 double tieeps = 0.001;  // Level of precisions to count ties
 
@@ -103,8 +104,6 @@ void findMinEvent(
                                int(min_e_functions.p2->getActive()));
         double test =
             factor * (lambda * (1 + tieeps) * e.second.a + e.second.b);
-        double test_min =
-            factor * (lambda * (1 - tieeps) * e.first.a + e.first.b);
 
         // If new min at lambda*(1+tieeps)
         if (test < time_p - eps) {

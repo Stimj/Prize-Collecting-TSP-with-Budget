@@ -50,7 +50,6 @@ Header readHeader(const std::string& filename) {
   std::string line;
   while (header.type.empty() || header.data_section.empty()) {
     getline(input_file, line);
-    std::cout << "Reading: " << line << std::endl;
     if (line.empty()) {
       std::cout << "Reached end of file while parsing header\n";
       return header;
@@ -88,13 +87,12 @@ Header readHeader(const std::string& filename) {
 }
 
 void printHeader(const Header &header) {
-  std::cout << "Reading graph with header:"
-            << "\nNAME: " << header.name << "\nCOMMENT: " << header.comment
+  std::cout << "\nNAME: " << header.name << "\nCOMMENT: " << header.comment
             << "\nTYPE: " << header.type
             << "\nEDGE_WEIGHT_TYPE: " << header.edge_weight_type
             << "\nDISPLAY_DATA_TYPE: " << header.display_data_type
             << "\nDATA_SECTION: " << header.data_section
-            << "\nDIMENSION: " << header.dimension << std::endl;
+            << "\nDIMENSION: " << header.dimension << std::endl << std::endl;
 }
 
 double readNodeCoordSection(const std::string &filename, Graph &graph) {

@@ -1,6 +1,3 @@
-//  MIT License
-
-#include <stdio.h>
 #include <iostream>
 #include <list>
 #include <string>
@@ -37,7 +34,7 @@ void generateBaseline(const std::string& filename, int max_nodes,
   // read the graph from the file and get some stats from it
   auto success = graphFromFile("tsplib_benchmarks/" + filename,
                                info.problem.graph, mean_edge_weight, num_nodes);
-  if (num_nodes > max_nodes) return;
+  if (!success || num_nodes > max_nodes) return;
 
   std::list<std::shared_ptr<Edge>> mst;
   info.problem.budget = 0.5 * info.problem.graph.MST(mst);

@@ -238,7 +238,7 @@ std::shared_ptr<Edge> findTree(std::shared_ptr<Subset> &s, double D,
   }
 
   // While not above the limit find the next pruned subset to pick from
-  for (int i = 0; i < subsetsPruned.size(); i++) {
+  for (size_t i = 0; i < subsetsPruned.size(); i++) {
     // std::cout << "Current weight " << w << "\n";
     // std::cout << "Pruned " << *subsetsPruned[i];
     // std::cout << "With edge " << *edgesPruned[i] << "\n";
@@ -388,67 +388,3 @@ int PD(const Graph &G, double D, std::list<std::shared_ptr<Edge>> &edges,
 
   return currPrize;
 }
-
-int PDMod(const Graph &G, double D, std::list<std::shared_ptr<Edge>> &edges,
-          double &upper, int &numRuns) {
-  // Start at D and save to edges
-  numRuns = 1;
-  int recursions = 0;
-  bool found = false;
-  double lambda = 0;
-  int prize = PD(G, D, edges, upper, recursions, lambda, found, true);
-
-  double w = 0;
-  for (auto e : edges) {
-    w += e->getWeight();
-  }
-  std::cout << "Orig cost: " << 2 * w << "\n";
-
-  // Shortcut distance
-  std::vector<int> tour = tourList(edges);
-  double dist = getTourLength(G, tour);
-
-  std::cout << "Shortcut: " << dist << "\n";
-
-  double l = D, r = 2.0 * D;
-  while (numRuns < 6) {
-    numRuns += 1;
-
-    // Run PD at midpoint
-    double p = (r + l) / 2.0;
-    std::cout << "Lower: " << l << ", Upper: " << r << ", Point: " << p << "\n";
-    bool t_found = false;
-    int t_recursions = 0;
-    double t_upper = 0;
-    double t_lambda = 0;
-    std::list<std::shared_ptr<Edge>> t_edges;
-    int t_prize =
-        PD(G, p, t_edges, t_upper, t_recursions, t_lambda, t_found, true);
-
-    // Shortcut
-    std::vector<int> t_tour = tourList(t_edges);
-    double t_dist = getTourLength(G, t_tour);
-
-    std::cout << "Point's prize: " << t_prize << "\n";
-    std::cout << "Point's shorcut distance: " << t_dist << "\n";
-
-    // Update upper and lower
-    if (t_dist <= D) {
-      l = p;
-      // Update best
-      if (t_prize > prize) {
-        prize = t_prize;
-        edges = t_edges;
-      }
-      // If really close to budget - break
-      if (t_dist >= 0.92 * D) {
-        return prize;
-      }
-    } else {
-      r = p;
-    }
-  }
-
-  return prize;
-}
-

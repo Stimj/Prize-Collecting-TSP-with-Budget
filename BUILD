@@ -1,8 +1,20 @@
 cc_library(
     name = "pd",
-    hdrs = ["include/linear_function.h","include/problem.h", "include/graph.h", "include/subset.h", "include/subroutine.h", "include/pd.h"],
-    srcs = ["src/graph.cpp", "src/subset.cpp", "src/subroutine.cpp", "src/pd.cpp"],
-    strip_include_prefix="include"
+    hdrs = [
+        "include/linear_function.h",
+        "include/graph.h",
+        "include/pd.h",
+        "include/problem.h",
+        "include/subroutine.h",
+        "include/subset.h",
+    ],
+    srcs = [
+        "src/graph.cpp",
+        "src/pd.cpp",
+        "src/subroutine.cpp",
+        "src/subset.cpp",
+    ],
+    strip_include_prefix="include",
 )
 
 cc_library(
@@ -10,39 +22,42 @@ cc_library(
     hdrs = ["include/read_file.h"],
     srcs = ["src/read_file.cpp"],
     strip_include_prefix="include",
-    deps = [":pd"]
+    deps = [":pd"],
 )
 
 filegroup(
     name="tsplib_benchmarks",
-    srcs = glob(["tsplib_benchmarks/*"])
+    srcs = glob(["tsplib_benchmarks/*"]),
 )
 
 cc_binary(
     name = "demo",
-    srcs = [
-        "src/demo.cpp",
-    ],
+    srcs = ["src/demo.cpp"],
     data = [":tsplib_benchmarks"],
-    deps = [":pd", ":read_file"],
+    deps = [
+        ":pd",
+        ":read_file",
+    ],
 )
 
 cc_binary(
     name = "compile_baselines",
-    srcs = [
-        "src/compile_baselines.cpp",
-    ],
+    srcs = ["src/compile_baselines.cpp"],
     data = [":tsplib_benchmarks"],
-    deps = [":pd", ":read_file"],
+    deps = [
+        ":pd",
+        ":read_file",
+    ],
 )
 
 cc_test(
     name = "read_files_test",
-    srcs = [
-        "test/read_file_test.cpp",
-    ],
-    deps = [":read_file", "@googletest//:gtest_main"],
+    srcs = ["test/read_file_test.cpp"],
     data = [":tsplib_benchmarks"],
+    deps = [
+        ":read_file",
+        "@googletest//:gtest_main"
+    ],
 )
 
 cc_test(
@@ -51,7 +66,11 @@ cc_test(
         "test/solution_baselines.cpp",
         "test/baseline_database.h",
     ],
-    deps = [":read_file", ":pd", "@googletest//:gtest_main"],
     data = [":tsplib_benchmarks"],
+    deps = [
+        ":pd",
+        ":read_file",
+        "@googletest//:gtest_main"
+    ],
     size = "large",
 )

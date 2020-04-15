@@ -70,7 +70,3 @@ std::shared_ptr<Edge> findTree(std::shared_ptr<Subset> &s, double D,
 int PD(const Graph &G, double D, std::list<std::shared_ptr<Edge>> &edges,
        double &upper, int &recursions, double &lambda, bool &found,
        bool recurse = true);
-
-// Modified to do binary search on D
-int PDMod(const Graph &G, double D, std::list<std::shared_ptr<Edge>> &edges,
-          double &upper, int &numRuns);

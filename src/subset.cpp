@@ -235,8 +235,8 @@ double pick(std::shared_ptr<Subset> &s, std::set<int> &visited, double limit,
   if (headinP1 == false) v1 = s->getEdge()->getTail(), v2 = head;
 
   // Get weights
-  double w1 = p1->getEdgeTotal(), w2 = p2->getEdgeTotal(),
-         w = s->getEdge()->getWeight();
+  double w1 = p1->getEdgeTotal();
+  double w = s->getEdge()->getWeight();
 
   // If w1 above limit then just recurse on p1
   if (w1 > limit) {
