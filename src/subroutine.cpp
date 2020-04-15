@@ -44,7 +44,7 @@ double edgeFactor(std::shared_ptr<Edge>& e,
 // Find min event to occur next
 void findMinEvent(
     double lambda, const std::list<std::shared_ptr<Subset>>& subsets,
-    std::vector<std::shared_ptr<Edge>>& E,
+    std::list<std::shared_ptr<Edge>>& E,
     std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs,
     std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>& lin_e,
     std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>& lin_s,
@@ -186,7 +186,7 @@ void findMinEvent(
 // Grow Function
 std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
   const std::list<int>& V = G.getVertices();  // vertices in G
-  std::vector<std::shared_ptr<Edge>> E;       // edges in G
+  std::list<std::shared_ptr<Edge>> E;       // edges in G
   for (auto e : G.getEdges()) {
     E.push_back(e);
   }
@@ -255,7 +255,7 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
         }
       }
     }
-    std::vector<std::shared_ptr<Edge>>::iterator it;
+    std::list<std::shared_ptr<Edge>>::iterator it;
     for (it = E.begin(); it != E.end();) {
       std::shared_ptr<Edge> e = *it;
       if (activeEdge(e, vertexSubs)) {
@@ -279,7 +279,7 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
         }
       }
       if (vertexSubs[e->getHead()] == vertexSubs[e->getTail()]) {
-        E.erase(it);
+        it = E.erase(it);
       } else {
         ++it;
       }

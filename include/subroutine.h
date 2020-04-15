@@ -41,7 +41,7 @@ double edgeFactor(std::shared_ptr<Edge>& e,
 
 void findMinEvent(
     double lambda, const std::list<std::shared_ptr<Subset>>& subsets,
-    std::vector<std::shared_ptr<Edge>>& E,
+    std::list<std::shared_ptr<Edge>>& E,
     std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs,
     std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>& lin_e,
     std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>& lin_s,
