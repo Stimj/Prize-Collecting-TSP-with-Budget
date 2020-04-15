@@ -27,11 +27,30 @@ cc_binary(
     deps = [":pd", ":read_file"],
 )
 
+cc_binary(
+    name = "compile_baselines",
+    srcs = [
+        "src/compile_baselines.cpp",
+    ],
+    data = [":tsplib_benchmarks"],
+    deps = [":pd", ":read_file"],
+)
+
 cc_test(
     name = "read_files_test",
     srcs = [
         "test/read_file_test.cpp",
-        ],
+    ],
     deps = [":read_file", "@googletest//:gtest_main"],
     data = [":tsplib_benchmarks"],
 )
+
+cc_test(
+    name = "solution_baselines_test",
+    srcs = [
+        "test/solution_baselines.cpp",
+        "test/baseline_database.h",
+    ],
+    deps = [":read_file", ":pd", "@googletest//:gtest_main"],
+    data = [":tsplib_benchmarks"],
+  )
