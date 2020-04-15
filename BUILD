@@ -26,3 +26,12 @@ cc_binary(
     data = [":tsplib_benchmarks"],
     deps = [":pd", ":read_file"],
 )
+
+cc_test(
+    name = "read_files_test",
+    srcs = [
+        "test/read_file_test.cpp",
+        ],
+    deps = [":read_file", "@googletest//:gtest_main"],
+    data = [":tsplib_benchmarks"],
+)
