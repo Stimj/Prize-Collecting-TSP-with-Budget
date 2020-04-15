@@ -16,7 +16,7 @@ double tieeps = 0.001;  // Level of precisions to count ties
 
 // Returns whether or not an edge is active
 bool activeEdge(std::shared_ptr<Edge>& e,
-                std::map<int, std::shared_ptr<Subset>>& vertexSubs) {
+                std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs) {
   std::shared_ptr<Subset> p1 = vertexSubs[e->getHead()],
                           p2 = vertexSubs[e->getTail()];
   if (p1 == p2) {
@@ -30,7 +30,7 @@ bool activeEdge(std::shared_ptr<Edge>& e,
 
 // Returns 0.5 if both endpoints are active and 1.0 otherwise
 double edgeFactor(std::shared_ptr<Edge>& e,
-                  std::map<int, std::shared_ptr<Subset>>& vertexSubs) {
+                  std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs) {
   std::shared_ptr<Subset> p1 = vertexSubs[e->getHead()],
                           p2 = vertexSubs[e->getTail()];
   bool p1active = p1->getActive(), p2active = p2->getActive();
@@ -45,11 +45,11 @@ double edgeFactor(std::shared_ptr<Edge>& e,
 void findMinEvent(
     double lambda, const std::list<std::shared_ptr<Subset>>& subsets,
     std::vector<std::shared_ptr<Edge>>& E,
-    std::map<int, std::shared_ptr<Subset>>& vertexSubs,
-    std::map<std::shared_ptr<Edge>, std::vector<double>>& lin_e,
-    std::map<std::shared_ptr<Subset>, std::vector<double>>& lin_s,
-    std::map<std::shared_ptr<Edge>, std::vector<double>>& lin_e_p,
-    std::map<std::shared_ptr<Subset>, std::vector<double>>& lin_s_p,
+    std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs,
+    std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>& lin_e,
+    std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>& lin_s,
+    std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>& lin_e_p,
+    std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>& lin_s_p,
     std::shared_ptr<Subset>& min_s, std::shared_ptr<Edge>& min_e,
     std::vector<double>& lin_val, std::shared_ptr<Edge>& alt_e,
     std::vector<double>& lin_val_p1, std::vector<double>& lin_val_p2) {
@@ -192,17 +192,17 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
   }
 
   std::list<std::shared_ptr<Subset>> subsets;  // list current subsets
-  std::map<int, std::shared_ptr<Subset>>
-      vertexSubs;  // map vertices to subset that contains them
+  std::unordered_map<int, std::shared_ptr<Subset>>
+      vertexSubs;  // unordered_map vertices to subset that contains them
 
   // Time to go tight is alpha*lambda+beta
-  std::map<std::shared_ptr<Subset>, std::vector<double>>
+  std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>
       lin_s;  // a and b values for subsets
-  std::map<std::shared_ptr<Edge>, std::vector<double>>
+  std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>
       lin_e;  // a and b values for edges
-  std::map<std::shared_ptr<Subset>, std::vector<double>>
+  std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>
       lin_s_p;  // a and b values for subsets at lambda+
-  std::map<std::shared_ptr<Edge>, std::vector<double>>
+  std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>
       lin_e_p;  // a and b values for edges at lambda+
 
   // First create an active subset for each vertex and intialize a_s and b_s

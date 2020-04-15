@@ -14,9 +14,9 @@
 #include <climits>
 #include <iostream>
 #include <list>
-#include <map>
 #include <memory>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 /* -------------------------EDGE--------------------------*/
@@ -78,8 +78,8 @@ class Vertex {
 
 class Graph {
  private:
-  std::map<int, std::shared_ptr<Vertex>>
-      vertexmap;            // map of vertex ids to vertex data structures
+  std::unordered_map<int, std::shared_ptr<Vertex>>
+      vertexunordered_map;            // unordered_map of vertex ids to vertex data structures
   std::list<int> vertices;  // list of vertex ids
   std::list<std::shared_ptr<Edge>> edges;  // list of edge pointers
   double W;                                // total weight of edges
@@ -121,7 +121,7 @@ class Graph {
 double getTourLength(const Graph &G, const std::vector<int> &tour);
 
 // DFS
-void DFS(std::list<std::shared_ptr<Edge>> &edges, std::map<int, bool> &visited,
+void DFS(std::list<std::shared_ptr<Edge>> &edges, std::unordered_map<int, bool> &visited,
          std::list<int> &tour, int v);
 
 // Find ordered list of tour given a tree of edges

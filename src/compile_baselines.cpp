@@ -1,26 +1,14 @@
-//
-//  main.cpp
-//  Prize Collecting TSP
-//
-//  Created by Alice Paul on 3/14/17.
-
 //  MIT License
-//  Copyright (c) 2020 alicepaul
 
 #include <stdio.h>
 #include <iostream>
 #include <list>
-#include <map>
-#include <memory>
-#include <set>
 #include <string>
 #include <vector>
 
 #include "graph.h"
 #include "pd.h"
 #include "read_file.h"
-#include "subroutine.h"
-#include "subset.h"
 
 const std::vector<std::string> kReadableInstances{
     "a280.tsp",     "ali535.tsp",   "att48.tsp",     "att532.tsp",

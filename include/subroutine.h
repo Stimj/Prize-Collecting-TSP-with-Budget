@@ -15,9 +15,9 @@
 #include <cmath>
 #include <iostream>
 #include <list>
-#include <map>
 #include <memory>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 #include "graph.h"
@@ -29,11 +29,11 @@
 // Endpoints must be in separate components and at least one component must be
 // active
 bool activeEdge(std::shared_ptr<Edge>& e,
-                std::map<int, std::shared_ptr<Subset>>& vertexSubs);
+                std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs);
 
 // Returns 0.5 if both endpoints are active and 1.0 otherwise
 double edgeFactor(std::shared_ptr<Edge>& e,
-                  std::map<int, std::shared_ptr<Subset>>& vertexSubs);
+                  std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs);
 
 // Find min event to occur next
 // Stores minimum subset pointer in min_s and minimum edge pointer in min_e
@@ -42,11 +42,11 @@ double edgeFactor(std::shared_ptr<Edge>& e,
 void findMinEvent(
     double lambda, const std::list<std::shared_ptr<Subset>>& subsets,
     std::vector<std::shared_ptr<Edge>>& E,
-    std::map<int, std::shared_ptr<Subset>>& vertexSubs,
-    std::map<std::shared_ptr<Edge>, std::vector<double>>& lin_e,
-    std::map<std::shared_ptr<Subset>, std::vector<double>>& lin_s,
-    std::map<std::shared_ptr<Edge>, std::vector<double>>& lin_e_p,
-    std::map<std::shared_ptr<Subset>, std::vector<double>>& lin_s_p,
+    std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs,
+    std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>& lin_e,
+    std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>& lin_s,
+    std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>& lin_e_p,
+    std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>& lin_s_p,
     std::shared_ptr<Subset>& min_s, std::shared_ptr<Edge>& min_e,
     std::vector<double>& lin_val, std::shared_ptr<Edge>& alt_e,
     std::vector<double>& lin_val_p1, std::vector<double>& lin_val_p2);

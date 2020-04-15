@@ -49,7 +49,7 @@ void reverseEdges(std::shared_ptr<Subset> &s) {
 // Calculate prize of all vertices in tree
 int prizeTree(const Graph &G, std::list<std::shared_ptr<Edge>> &tree) {
   int p = 0;
-  std::map<int, bool> added;
+  std::unordered_map<int, bool> added;
   for (auto v : G.getVertices()) {
     added[v] = false;
   }

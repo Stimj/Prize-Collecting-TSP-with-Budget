@@ -13,14 +13,11 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <map>
-//#include <memory>
 #include <sstream>
 #include <stdio.h>
 #include <string>
+#include <unordered_map>
 #include <vector>
-
-//#include <sys/types.h>
 
 #include "graph.h"
 

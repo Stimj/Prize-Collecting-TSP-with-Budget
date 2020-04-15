@@ -111,7 +111,7 @@ Graph::Graph(const Graph &G) {
     int i = *it;
     int p = G.getVertex(i)->getPrize();
     std::shared_ptr<Vertex> v = std::make_shared<Vertex>(i, p);
-    vertexmap[*it] = v;
+    vertexunordered_map[*it] = v;
   }
 
   std::list<std::shared_ptr<Edge>>::const_iterator it2;
@@ -120,8 +120,8 @@ Graph::Graph(const Graph &G) {
     int id2 = (**it2).getTail();
     double w = (**it2).getWeight();
     std::shared_ptr<Edge> e = std::make_shared<Edge>(id1, id2, w);
-    vertexmap[id1]->addEdge(e);
-    vertexmap[id2]->addEdge(e);
+    vertexunordered_map[id1]->addEdge(e);
+    vertexunordered_map[id2]->addEdge(e);
     edges.push_back(e);
   }
 }
@@ -141,7 +141,7 @@ Graph::Graph(const Graph &G, const std::list<int> &S) {
     int id1 = e->getHead(), id2 = e->getTail();
     double w = e->getWeight();
 
-    if ((vertexmap.count(id1) > 0) && (vertexmap.count(id2) > 0)) {
+    if ((vertexunordered_map.count(id1) > 0) && (vertexunordered_map.count(id2) > 0)) {
       addEdge(id1, id2, w);
     }
   }
@@ -151,7 +151,7 @@ Graph::Graph(const Graph &G, const std::list<int> &S) {
 void Graph::addVertex(int id, int p) {
   vertices.push_back(id);
   std::shared_ptr<Vertex> v = std::make_shared<Vertex>(id, p);
-  vertexmap[id] = v;
+  vertexunordered_map[id] = v;
   P += p;
 }
 
@@ -160,12 +160,12 @@ void Graph::addVertex(int id) { addVertex(id, 1); }
 
 // Add an edge to a graph
 void Graph::addEdge(int id1, int id2, double weight) {
-  if ((vertexmap[id1] == NULL) || (vertexmap[id2] == NULL)) {
+  if ((vertexunordered_map[id1] == NULL) || (vertexunordered_map[id2] == NULL)) {
     return;
   }
   std::shared_ptr<Edge> e = std::make_shared<Edge>(id1, id2, weight);
-  vertexmap[id1]->addEdge(e);
-  vertexmap[id2]->addEdge(e);
+  vertexunordered_map[id1]->addEdge(e);
+  vertexunordered_map[id2]->addEdge(e);
   edges.push_back(e);
   if (weight < 0) {
     W -= weight;
@@ -176,29 +176,29 @@ void Graph::addEdge(int id1, int id2, double weight) {
 
 // Return ptr to vertex
 std::shared_ptr<Vertex> const &Graph::getVertex(int id) const {
-  if (vertexmap.count(id) == 0) {
+  if (vertexunordered_map.count(id) == 0) {
     throw std::invalid_argument("Vertex does not exist");
   }
-  return vertexmap.at(id);
+  return vertexunordered_map.at(id);
 }
 
 // Return vertex degree
 double Graph::getVertexDegree(int id) const {
-  if (vertexmap.count(id) == 0) {
+  if (vertexunordered_map.count(id) == 0) {
     throw std::invalid_argument("Vertex does not exist");
   }
-  return vertexmap.at(id)->getDegree();
+  return vertexunordered_map.at(id)->getDegree();
 }
 
-// Remove vertex from list of vertices and vertex map
+// Remove vertex from list of vertices and vertex unordered_map
 void Graph::removeVertexLists(int id) {
   vertices.remove(id);
-  vertexmap.erase(id);
+  vertexunordered_map.erase(id);
 }
 
 // Delete a vertex from a graph
 void Graph::deleteVertex(int id) {
-  std::shared_ptr<Vertex> p_v = vertexmap[id];
+  std::shared_ptr<Vertex> p_v = vertexunordered_map[id];
   if (p_v == NULL) {
     return;
   }
@@ -223,14 +223,14 @@ void Graph::deleteVertex(int id) {
         W -= (*it)->getWeight();
       }
       int j = (*it)->getOther(id);
-      vertexmap[j]->removeEdge(*it);
+      vertexunordered_map[j]->removeEdge(*it);
       edges.erase(it++);
     } else {
       ++it;
     }
   }
 
-  // Delete references in the map/list
+  // Delete references in the unordered_map/list
   removeVertexLists(id);
 }
 
@@ -253,9 +253,9 @@ std::ostream &operator<<(std::ostream &out, const Graph &graph) {
 
 // Minimum spanning tree
 double Graph::MST(std::list<std::shared_ptr<Edge>> &edges) const {
-  std::map<int, bool> inTree;
-  std::map<int, double> key;
-  std::map<int, std::shared_ptr<Edge>> edge_keys;
+  std::unordered_map<int, bool> inTree;
+  std::unordered_map<int, double> key;
+  std::unordered_map<int, std::shared_ptr<Edge>> edge_keys;
   int numInTree = 0;
   double weightTree = 0;
 
@@ -314,7 +314,7 @@ double getTourLength(const Graph &G, const std::vector<int> &tour) {
 }
 
 // DFS
-void DFS(std::list<std::shared_ptr<Edge>> &edges, std::map<int, bool> &visited,
+void DFS(std::list<std::shared_ptr<Edge>> &edges, std::unordered_map<int, bool> &visited,
          std::vector<int> &tour, int v) {
   // Mark v as visited and add to tour
   visited[v] = true;
@@ -333,9 +333,9 @@ void DFS(std::list<std::shared_ptr<Edge>> &edges, std::map<int, bool> &visited,
 
 // Find ordered list of tour given a tree of edges
 std::vector<int> tourList(std::list<std::shared_ptr<Edge>> &edges) {
-  // Find starting vertex and create bool map
+  // Find starting vertex and create bool unordered_map
   int v = edges.front()->getHead();
-  std::map<int, bool> visited;
+  std::unordered_map<int, bool> visited;
   for (auto e : edges) {
     visited[e->getHead()] = false, visited[e->getTail()] = false;
   }
@@ -354,9 +354,9 @@ std::vector<int> tourList(std::list<std::shared_ptr<Edge>> &edges) {
 
 // Find length of shortest path from i to j in G
 double shortestPath(const Graph &G, int i, int j) {
-  // Set up distance maps
-  std::map<int, double> distances;
-  std::map<int, bool> setDist;
+  // Set up distance unordered_maps
+  std::unordered_map<int, double> distances;
+  std::unordered_map<int, bool> setDist;
   for (auto v : G.getVertices()) {
     setDist[v] = false;
     distances[v] = INT_MAX;
