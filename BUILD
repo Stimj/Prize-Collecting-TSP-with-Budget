@@ -1,8 +1,8 @@
 cc_library(
     name = "pd",
     hdrs = [
-        "include/linear_function.h",
         "include/graph.h",
+        "include/linear_function.h",
         "include/pd.h",
         "include/problem.h",
         "include/subroutine.h",

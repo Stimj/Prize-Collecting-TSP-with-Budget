@@ -26,23 +26,13 @@
 
 /* ------------------------- HELPER FUNCTIONS --------------------------*/
 
-// Returns whether or not an edge is active
-// Endpoints must be in separate components and at least one component must be
-// active
-bool activeEdge(std::shared_ptr<Edge>& e,
-                std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs);
-
-// Returns 0.5 if both endpoints are active and 1.0 otherwise
-double edgeFactor(std::shared_ptr<Edge>& e,
-                  std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs);
-
 // Find min event to occur next
 // Stores minimum subset pointer in min_s and minimum edge pointer in min_e
 // Also finds event at lambda*(1+eps) (marked with _p)
 
 void findMinEvent(
     double lambda, const std::list<std::shared_ptr<Subset>>& subsets,
-    std::list<std::shared_ptr<Edge>>& E,
+    std::list<std::shared_ptr<Edge>>& edge_functions,
     std::unordered_map<std::shared_ptr<Edge>, LinearFunctionPair>& lin_e,
     std::unordered_map<std::shared_ptr<Subset>, LinearFunctionPair>& lin_s,
     std::shared_ptr<Subset>& min_s, std::shared_ptr<Edge>& min_e,
