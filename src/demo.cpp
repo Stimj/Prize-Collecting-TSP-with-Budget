@@ -28,9 +28,8 @@ int main(int argc, char* argv[]) {
   Graph G;
   double meanEdgeWeight;
   int numNodes;
-  std::string name;
   // read the graph from the file and get some stats from it
-  graphFromFile("Instances/" + file, G, name, meanEdgeWeight, numNodes);
+  auto success = graphFromFile("tsplib_benchmarks/" + file, G, meanEdgeWeight, numNodes);
   // std::cout<<"mean edge weight:"<<meanEdgeWeight<<"\n"<<"number of
   // nodes:"<<numNodes<<std::endl; std::cout<< "Graph: "<<G<<std::endl;
 

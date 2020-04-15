@@ -2,18 +2,19 @@
 
 #include "read_file.h"
 
-int nodesInGraph(const std::string& filename) {
+int nodesInGraph(const std::string& filename, bool expect_success=true) {
   // Read graph file and return number of nodes
   Graph G;
   double meanEdgeWeight;
   int numNodes;
   std::string name;
-  graphFromFile(filename, G, name, meanEdgeWeight, numNodes);
+  auto success = graphFromFile(filename, G, meanEdgeWeight, numNodes);
+  EXPECT_EQ(expect_success, success);
   return numNodes;
 }
 
 TEST(ReadFile, invalid_file) {
-  EXPECT_EQ(0, nodesInGraph("does_not_exist"));
+  EXPECT_EQ(0, nodesInGraph("does_not_exist", false));
 }
 TEST(ReadFile, edge_weight_tsp_files) {
   // These files use edge weights formats that are not parsed by read_files
@@ -30,6 +31,7 @@ TEST(ReadFile, edge_weight_tsp_files) {
   EXPECT_EQ(24, nodesInGraph("tsplib_benchmarks/gr24.tsp"));
   EXPECT_EQ(48, nodesInGraph("tsplib_benchmarks/gr48.tsp"));
   EXPECT_EQ(48, nodesInGraph("tsplib_benchmarks/hk48.tsp"));
+  EXPECT_EQ(561, nodesInGraph("tsplib_benchmarks/pa561.tsp"));
   EXPECT_EQ(42, nodesInGraph("tsplib_benchmarks/swiss42.tsp"));
   */
 }
@@ -92,12 +94,9 @@ TEST(ReadFile, node_coord_tsp_files) {
   EXPECT_EQ(100, nodesInGraph("tsplib_benchmarks/kroE100.tsp"));
   EXPECT_EQ(105, nodesInGraph("tsplib_benchmarks/lin105.tsp"));
   EXPECT_EQ(318, nodesInGraph("tsplib_benchmarks/lin318.tsp"));
-// TODO: Fix parser error
-//  EXPECT_EQ(318, nodesInGraph("tsplib_benchmarks/linhp318.tsp"));
+  EXPECT_EQ(318, nodesInGraph("tsplib_benchmarks/linhp318.tsp"));
   EXPECT_EQ(1379, nodesInGraph("tsplib_benchmarks/nrw1379.tsp"));
   EXPECT_EQ(654, nodesInGraph("tsplib_benchmarks/p654.tsp"));
-// TODO: Fix parser error
-//  EXPECT_EQ(561, nodesInGraph("tsplib_benchmarks/pa561.tsp"));
   EXPECT_EQ(1173, nodesInGraph("tsplib_benchmarks/pcb1173.tsp"));
   EXPECT_EQ(3038, nodesInGraph("tsplib_benchmarks/pcb3038.tsp"));
   EXPECT_EQ(442, nodesInGraph("tsplib_benchmarks/pcb442.tsp"));

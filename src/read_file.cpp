@@ -4,16 +4,14 @@
 //
 //  Created by Alice Paul on 4/10/17.
 //
-//  MIT License
-//  Copyright (c) 2020 alicepaul
-//
-//
 //
 
 #include "read_file.h"
 
-void tokenize(const std::string &str, std::vector<std::string> &tokens,
-              const std::string &delimiters) {
+std::vector<std::string> tokenize(const std::string &str,
+                                  const std::string &delimiters) {
+  std::vector<std::string> tokens;
+
   // Skip delimiters at beginning.
   std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
   // Find first "non-delimiter".
@@ -27,201 +25,158 @@ void tokenize(const std::string &str, std::vector<std::string> &tokens,
     // Find next "non-delimiter"
     pos = str.find_first_of(delimiters, lastPos);
   }
+  return tokens;
 }
 
-bool has_suffix(const std::string &str, const std::string &suffix) {
-  return str.size() >= suffix.size() &&
-         str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
-}
-
-bool has_prefix(const std::string &str, const std::string &prefix) {
-  auto res = std::mismatch(prefix.begin(), prefix.end(), str.begin());
-  return res.first == prefix.end();
-}
-
-// bool is_number(const std::string& s)
-// {
-//     return !s.empty() && std::find_if(s.begin(),
-//         s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
-// }
-
-bool is_number(const std::string &s) {
-  std::string::const_iterator it = s.begin();
-  while (it != s.end() && std::isdigit(*it)) ++it;
-  return !s.empty() && it == s.end();
-}
-
-// reads the graphs from a file
-int graphFromFile(const std::string &fileName, Graph &G, std::string &graphName,
-                  double &meanEdgeWeight, int &numNodes) {
-  std::string line;
-  std::ifstream infile(fileName);
-  // get name
-  std::getline(infile, line);
-  std::istringstream iss(line);
-  std::string ignoredValue;
+struct Header {
+  std::string name;
+  std::string comment;
   std::string type;
-  iss >> ignoredValue >> graphName;
-  infile >> ignoredValue >> type;
-  double totalEdgeWeight = 0;
-  int nodesAdded = 0;
-  int edgesAdded = 0;
-  if (type.compare("BikeTSP") == 0) {
-    // parse bike tsp
-    int vertex;
-    int head;
-    int tail;
-    double distance;
-    std::set<int> nodesWithEdges;
-    std::set<int> vertexSet;
+  std::string edge_weight_type;
+  std::string display_data_type;
+  std::string data_section;
+  int dimension;
+};
 
-    // skip ahead to node section
-    do {
-      infile >> ignoredValue;
-    } while (ignoredValue.compare("DISPLAY_DATA_SECTION") != 0);
+struct NodeCoord {
+  int id;
+  int x;
+  int y;
+};
 
-    // parse vertices, skip DISPLAY_DATA_SECTION line
-    std::getline(infile, line);
-    std::getline(infile, line);
-    while (line.compare("EDGE_WEIGHT_SECTION") != 0) {
-      std::istringstream iss(line);
-      iss >> vertex;
-      G.addVertex(vertex);
-      vertexSet.insert(vertex);
-      nodesAdded++;
-      std::getline(infile, line);
+Header readHeader(const std::string& filename) {
+  std::ifstream input_file(filename);
+  Header header;
+  std::string line;
+  while (header.type.empty() || header.data_section.empty()) {
+    getline(input_file, line);
+    std::cout << "Reading: " << line << std::endl;
+    if (line.empty()) {
+      std::cout << "Reached end of file while parsing header\n";
+      return header;
     }
 
-    while (std::getline(infile, line)) {
-      std::istringstream iss(line);
-      iss >> head >> tail >> distance;
-      if ((distance >= 5000) &&
-          (nodesWithEdges.find(head) != nodesWithEdges.end()) &&
-          (nodesWithEdges.find(tail) != nodesWithEdges.end()))
-        continue;
-
-      // if one of the two endpoints are not in the vertex set, continue
-      if ((vertexSet.find(head) == vertexSet.end()) ||
-          (vertexSet.find(tail) == vertexSet.end())) {
-        std::cout << "vertex not in graph" << std::endl;
-        continue;
-      }
-      nodesWithEdges.insert(head);
-      nodesWithEdges.insert(tail);
-      G.addEdge(head, tail, distance);
-      totalEdgeWeight += distance;
-      edgesAdded++;
-      // std::cout<<head<<", "<<tail<<" "<<std::endl;
-    }
-  } else if (type.compare("BikeVertexWeighted") == 0) {
-    // parse bike vertex weighted tsp
-    int vertex;
-    int prize;
-    int head;
-    int tail;
-    double distance;
-    std::set<int> nodesWithEdges;
-    std::set<int> vertexSet;
-
-    // skip ahead to node section
-    do {
-      infile >> ignoredValue;
-    } while (ignoredValue.compare("DISPLAY_DATA_SECTION") != 0);
-
-    // parse vertices, skip DISPLAY_DATA_SECTION line
-    std::getline(infile, line);
-    std::getline(infile, line);
-    while (line.compare("EDGE_WEIGHT_SECTION") != 0) {
-      std::istringstream iss(line);
-      iss >> vertex >> prize;
-      G.addVertex(vertex, prize);
-      vertexSet.insert(vertex);
-      nodesAdded++;
-      std::getline(infile, line);
+    if(line.rfind("NODE_COORD_SECTION", 0) == 0 || line.rfind("EDGE_WEIGHT_SECTION", 0) == 0) {
+      header.data_section = line;
+      continue;
     }
 
-    while (std::getline(infile, line)) {
-      std::istringstream iss(line);
-      iss >> head >> tail >> distance;
-      if ((distance >= 5000) &&
-          (nodesWithEdges.find(head) != nodesWithEdges.end()) &&
-          (nodesWithEdges.find(tail) != nodesWithEdges.end()))
-        continue;
+    auto words = tokenize(line, ": ");
 
-      // if one of the two endpoints are not in the vertex set, continue
-      if ((vertexSet.find(head) == vertexSet.end()) ||
-          (vertexSet.find(tail) == vertexSet.end())) {
-        std::cout << "vertex not in graph" << std::endl;
-        continue;
-      }
-      nodesWithEdges.insert(head);
-      nodesWithEdges.insert(tail);
-      G.addEdge(head, tail, distance);
-      totalEdgeWeight += distance;
-      edgesAdded++;
-      // std::cout<<head<<", "<<tail<<" "<<std::endl;
+    if (words.empty()) {
+      std::cout << "Error parsing line:\n" << line << std::endl;
+      continue;
     }
 
-  } else {
-    // parse tsp from python
-    int dimension;
-    int edgeWeight;
-    // std::getline(infile, line);
-    // std::getline(infile, line);
-    infile >> ignoredValue >> dimension;
-
-    for (int i = 0; i < dimension; ++i) {
-      G.addVertex(i);
-      nodesAdded++;
-    }
-    std::getline(infile, line);
-    int head;
-    int tail;
-    double distance;
-    std::string line;
-    // for (int i=0; i<dimension; ++i){
-    // for (int j=0; j<dimension; ++j){
-    while (std::getline(infile, line)) {
-      std::istringstream iss(line);
-      iss >> head >> tail >> distance;
-      // std::cout<<"adding edge:"<<head<<","<<tail<<","<<distance<<std::endl;
-      G.addEdge(head, tail, distance);
-      totalEdgeWeight += distance;
-      edgesAdded++;
+    if (words[0].rfind("NAME", 0) == 0) {
+      header.name = words[1];
+    } else if (words[0].rfind("TYPE", 0) == 0) {
+      header.type = words[1];
+    } else if (words[0].rfind("COMMENT", 0) == 0) {
+      header.comment = words[1];  // should be words 1-end with spaces?
+    } else if (words[0].rfind("DIMENSION", 0) == 0) {
+      header.dimension = std::atoi(words[1].c_str());
+    } else if (words[0].rfind("EDGE_WEIGHT_TYPE", 0) == 0) {
+      header.edge_weight_type = words[1];
+    } else if (words[0].rfind("DISPLAY_DATA_TYPE", 0) == 0) {
+      header.display_data_type = words[1];
+    } else {
+      std::cout << "Warning: Ignored token in preamble:\n" << line << std::endl;
     }
   }
-  meanEdgeWeight = totalEdgeWeight / edgesAdded;
-  // std::cout<<meanEdgeWeight<<std::endl;
-
-  // std::cout<<"graph:"<<graphName<<std::endl;
-  numNodes = nodesAdded;
-  std::cout << "nodes added:" << nodesAdded << "\n"
-            << "edges added:" << edgesAdded << std::endl;
-  return 0;
+  return header;
 }
 
-// read distances from csv file
-std::map<std::pair<int, int>, double> readDistances(
-    const std::string &fileName) {
-  std::map<std::pair<int, int>, double> dists;
-  std::ifstream infile;
-  infile.open(fileName);
-  std::string nextline;
+void printHeader(const Header &header) {
+  std::cout << "Reading graph with header:"
+            << "\nNAME: " << header.name << "\nCOMMENT: " << header.comment
+            << "\nTYPE: " << header.type
+            << "\nEDGE_WEIGHT_TYPE: " << header.edge_weight_type
+            << "\nDISPLAY_DATA_TYPE: " << header.display_data_type
+            << "\nDATA_SECTION: " << header.data_section
+            << "\nDIMENSION: " << header.dimension << std::endl;
+}
 
-  if (infile.is_open()) {
-    while (getline(infile, nextline)) {
-      // Get line and break by spaces
-      std::vector<std::string> words;
-      tokenize(nextline, words, ",");
+double readNodeCoordSection(const std::string &filename, Graph &graph) {
+  std::ifstream input_file(filename);
 
-      int i = 100 * std::stoi(words[0]);
-      int j = 100 * std::stoi(words[1]);
-      double weight = std::stod(words[2]);
-      dists[std::make_pair(i, j)] = weight;
-      dists[std::make_pair(j, i)] = weight;
+  std::string line;
+  std::vector<NodeCoord> node_coordinates;
+
+  // Skip to NODE_COORD_SECTION
+  while (std::getline(input_file, line)) {
+    if (line.empty()) {
+      std::cout << "Error: NODE_COORD_SECTION not found\n";
+      return 0.0;
     }
-    infile.close();
+    if (line.compare("NODE_COORD_SECTION") == 0) break;
   }
 
-  return dists;
+  while (std::getline(input_file, line)) {
+    std::istringstream iss(line);
+    int node_id, x, y;
+    iss >> node_id >> x >> y;
+    node_coordinates.emplace_back(NodeCoord{node_id, x, y});
+  }
+
+  // Build the complete graph from the list of node coordinates
+  double total_edge_weight = 0;
+  int edges_added = 0;
+  for (size_t head = 0; head < node_coordinates.size(); head++) {
+    for (size_t tail = 0; tail < head; tail++) {
+      // Compute distance between two points
+      auto dx = node_coordinates[head].x - node_coordinates[tail].x;
+      auto dy = node_coordinates[head].y - node_coordinates[tail].y;
+      auto distance = std::sqrt(dx * dx + dy * dy);
+      graph.addEdge(head, tail, distance);
+      total_edge_weight += distance;
+      edges_added++;
+    }
+    graph.addEdge(head, head, 0.0);
+    edges_added++;
+  }
+
+  return total_edge_weight / edges_added;
+}
+
+bool graphFromFile(const std::string &filename, Graph &graph,
+                   double &mean_edge_weight, int &num_nodes) {
+  // Test that file exists
+  {
+    std::ifstream infile(filename);
+    if (!infile.good()) {
+      std::cout << "Error opening file " << filename << std::endl;
+      num_nodes = 0;
+      return false;
+    }
+  }
+
+  auto header = readHeader(filename);
+  printHeader(header);
+
+  // Load in data here
+  num_nodes = 0;
+  if (header.type.rfind("TSP", 0) == 0) {
+    if (header.data_section.rfind("NODE_COORD_SECTION", 0) == 0) {
+      for (int i = 0; i < header.dimension; ++i) {
+        graph.addVertex(i);
+        num_nodes++;
+      }
+      mean_edge_weight = readNodeCoordSection(filename, graph);
+      if (mean_edge_weight <= 0.0) {
+        num_nodes = 0;
+        return false;
+      }
+    } else {
+      std::cout << "Unsupported data section: " << header.data_section
+                << std::endl;
+      num_nodes = 0;
+      return false;
+    }
+  } else {
+    std::cout << "Unsupported filetype " << header.type << std::endl;
+    num_nodes = 0;
+    return false;
+  }
+  return true;
 }
