@@ -1,6 +1,6 @@
 cc_library(
     name = "pd",
-    hdrs = ["include/graph.h", "include/subset.h", "include/subroutine.h", "include/pd.h"],
+    hdrs = ["include/problem.h", "include/graph.h", "include/subset.h", "include/subroutine.h", "include/pd.h"],
     srcs = ["src/graph.cpp", "src/subset.cpp", "src/subroutine.cpp", "src/pd.cpp"],
     strip_include_prefix="include"
 )

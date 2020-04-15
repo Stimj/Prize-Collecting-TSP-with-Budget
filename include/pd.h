@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <stdio.h>
+#include <chrono>
 #include <climits>
 #include <cmath>
 #include <iostream>
@@ -18,13 +18,18 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <stdio.h>
 #include <vector>
 
 #include "graph.h"
 #include "subroutine.h"
 #include "subset.h"
+#include "problem.h"
 
 /* ------------------------- HELPER FUNCTIONS--------------------------*/
+
+// Wrapper which solves problem instance and stores relevant solution information
+void solveInstance(SolverInfo& info);
 
 // Change all edges to alt edges
 void reverseEdges(std::shared_ptr<Subset> &s);

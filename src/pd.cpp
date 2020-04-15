@@ -13,6 +13,21 @@
 double ep = 1.0e-15;  // theshold for ties
 
 /* ------------------------- HELPER FUNCTIONS--------------------------*/
+
+void solveInstance(SolverInfo &info) {
+  auto t0 = std::chrono::high_resolution_clock::now();
+  PD(info.problem.graph, info.problem.budget, info.solution.path,
+     info.solution.upper_bound, info.recursions, info.lambda,
+     info.solution.solved, true);
+  auto t1 = std::chrono::high_resolution_clock::now();
+  info.solution.prize = prizeTree(info.problem.graph, info.solution.path);
+  info.walltime =
+      static_cast<double>(
+          std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0)
+              .count()) /
+      1000000.;
+}
+
 // Change all edges to alt edges
 void reverseEdges(std::shared_ptr<Subset> &s) {
   // Base case is that s does not have a parent
