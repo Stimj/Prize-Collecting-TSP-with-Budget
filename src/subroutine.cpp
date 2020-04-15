@@ -29,8 +29,9 @@ bool activeEdge(std::shared_ptr<Edge>& e,
 }
 
 // Returns 0.5 if both endpoints are active and 1.0 otherwise
-double edgeFactor(std::shared_ptr<Edge>& e,
-                  std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs) {
+double edgeFactor(
+    std::shared_ptr<Edge>& e,
+    std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs) {
   std::shared_ptr<Subset> p1 = vertexSubs[e->getHead()],
                           p2 = vertexSubs[e->getTail()];
   bool p1active = p1->getActive(), p2active = p2->getActive();
@@ -46,28 +47,26 @@ void findMinEvent(
     double lambda, const std::list<std::shared_ptr<Subset>>& subsets,
     std::list<std::shared_ptr<Edge>>& E,
     std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs,
-    std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>& lin_e,
-    std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>& lin_s,
-    std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>& lin_e_p,
-    std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>& lin_s_p,
+    std::unordered_map<std::shared_ptr<Edge>, LinearFunctionPair>& lin_e,
+    std::unordered_map<std::shared_ptr<Subset>, LinearFunctionPair>& lin_s,
     std::shared_ptr<Subset>& min_s, std::shared_ptr<Edge>& min_e,
-    std::vector<double>& lin_val, std::shared_ptr<Edge>& alt_e,
-    std::vector<double>& lin_val_p1, std::vector<double>& lin_val_p2) {
+    LinearFunction& lin_val, std::shared_ptr<Edge>& alt_e,
+    LinearFunction& lin_val_p1, LinearFunction& lin_val_p2) {
   min_e = NULL;
   min_s = NULL;
 
   // Iterate through active subsets
   double time_s = INT_MAX;
-  std::vector<double> lin_val_s = {0., 0.};
+  LinearFunction lin_val_s = {0., 0.};
   for (auto s : subsets) {
     if (s->getActive()) {
       // Time to go tight for subset s
-      double test = lambda * (1 - tieeps) * lin_s[s][0] + lin_s[s][1];
+      double test = lambda * (1 - tieeps) * lin_s[s].first.a + lin_s[s].first.b;
 
       // If new min
       if (test < time_s - eps) {  // break ties by slope
         time_s = test;
-        lin_val_s = lin_s[s];
+        lin_val_s = lin_s[s].first;
         min_s = s;
       }
     }
@@ -75,18 +74,18 @@ void findMinEvent(
 
   // Iterate through active edges
   double time_e = INT_MAX;
-  std::vector<double> lin_val_e = {0., 0.};
+  LinearFunction lin_val_e = {0., 0.};
   for (auto e : E) {
     if (activeEdge(e, vertexSubs)) {
       // Time to go tight for edge e
       double factor = edgeFactor(e, vertexSubs);
-      double test =
-          factor * (lambda * (1 - tieeps) * lin_e[e][0] + lin_e[e][1]);
+      double test = factor * (lambda * (1 - tieeps) * lin_e[e].first.a +
+                              lin_e[e].first.b);
 
       // If new min
       if (test < time_e - eps) {
         time_e = test;
-        lin_val_e = {factor * lin_e[e][0], factor * lin_e[e][1]};
+        lin_val_e = {factor * lin_e[e].first.a, factor * lin_e[e].first.b};
         min_e = e;
       }
     }
@@ -102,13 +101,13 @@ void findMinEvent(
   }
 
   // If an edge event then we have to check for ties
-  lin_val_p1 = {0., 0.}, lin_val_p2 = {lin_val[0], lin_val[1]};
+  lin_val_p1 = {0., 0.}, lin_val_p2 = {lin_val.a, lin_val.b};
   alt_e = min_e;
   if (min_e != NULL) {
     // Find event time for min_e at lambda*(1+tieeps)
     double time_p =
         edgeFactor(min_e, vertexSubs) *
-        (lambda * (1 + tieeps) * lin_e_p[min_e][0] + lin_e_p[min_e][1]);
+        (lambda * (1 + tieeps) * lin_e[min_e].second.a + lin_e[min_e].second.b);
 
     // Find minimum tied edge between same subsets at lambda*(1+tieeps)
     std::shared_ptr<Subset> p1 = vertexSubs[min_e->getHead()],
@@ -119,14 +118,14 @@ void findMinEvent(
       if (((s1 == p1) && (s2 == p2)) || ((s1 == p2) && (s2 == p1))) {
         // Time to go tight for edge e
         double factor = edgeFactor(e, vertexSubs);
-        double test =
-            factor * (lambda * (1 + tieeps) * lin_e_p[e][0] + lin_e_p[e][1]);
-        double test_min =
-            factor * (lambda * (1 - tieeps) * lin_e[e][0] + lin_e[e][1]);
+        double test = factor * (lambda * (1 + tieeps) * lin_e[e].second.a +
+                                lin_e[e].second.b);
+        double test_min = factor * (lambda * (1 - tieeps) * lin_e[e].first.a +
+                                    lin_e[e].first.b);
 
         // If new min at lambda*(1+tieeps)
         if (test < time_p - eps) {
-          lin_val_p2 = {factor * lin_e_p[e][0], factor * lin_e_p[e][1]};
+          lin_val_p2 = {factor * lin_e[e].second.a, factor * lin_e[e].second.b};
           alt_e = e;
           time_p = test;
         }
@@ -137,12 +136,12 @@ void findMinEvent(
     double testp1 = INT_MAX, testp2 = INT_MAX;
     bool tiedp1 = false, tiedp2 = false;
     if (p1->getActive()) {
-      testp1 = lambda * (1 + tieeps) * lin_s_p[p1][0] + lin_s_p[p1][1];
+      testp1 = lambda * (1 + tieeps) * lin_s[p1].second.a + lin_s[p1].second.b;
       tiedp1 = (testp1 < time_p - eps);
       p1->setTied(tiedp1);
     }
     if (p2->getActive()) {
-      testp2 = lambda * (1 + tieeps) * lin_s_p[p2][0] + lin_s_p[p2][1];
+      testp2 = lambda * (1 + tieeps) * lin_s[p2].second.a + lin_s[p2].second.b;
       tiedp2 = (testp2 < time_p - eps);
       p2->setTied(tiedp2);
     }
@@ -156,27 +155,27 @@ void findMinEvent(
 
     // P1 ties and P2 is active - edge will go tight next
     if ((tiedp1) && (tiedp2 == false) && (p2->getActive())) {
-      lin_val_p1 = lin_s_p[p1];
-      lin_val_p2 = {lin_e_p[min_e][0] - 2 * lin_s_p[p1][0],
-                    lin_e_p[min_e][1] - 2 * lin_s_p[p1][1]};
+      lin_val_p1 = lin_s[p1].second;
+      lin_val_p2 = {lin_e[min_e].second.a - 2 * lin_s[p1].second.a,
+                    lin_e[min_e].second.b - 2 * lin_s[p1].second.b};
     }
     // P2 ties and P1 is active - edge will go tight next
     else if ((tiedp2) && (tiedp1 == false) && (p1->getActive())) {
-      lin_val_p1 = lin_s_p[p2];
-      lin_val_p2 = {lin_e_p[min_e][0] - 2 * lin_s_p[p2][0],
-                    lin_e_p[min_e][1] - lin_s_p[p2][1]};
+      lin_val_p1 = lin_s[p2].second;
+      lin_val_p2 = {lin_e[min_e].second.a - 2 * lin_s[p2].second.a,
+                    lin_e[min_e].second.b - lin_s[p2].second.b};
     }
     // P1 ties and P2 is inactive or goes neutral right after - edge between two
     // inactive components
     else if ((tiedp1) && (testp1 < testp2)) {
       alt_e = min_e;
-      lin_val_p1 = {lin_val[0], lin_val[1]}, lin_val_p2 = {0., 0.};
+      lin_val_p1 = {lin_val.a, lin_val.b}, lin_val_p2 = {0., 0.};
     }
     // P2 ties and P1 is inactive or goes neutral right after - edge between two
     // inactive components
     else if ((tiedp2) && (testp2 < testp1)) {
       alt_e = min_e;
-      lin_val_p1 = {lin_val[0], lin_val[1]}, lin_val_p2 = {0., 0.};
+      lin_val_p1 = {lin_val.a, lin_val.b}, lin_val_p2 = {0., 0.};
     }
   }
 }
@@ -186,7 +185,7 @@ void findMinEvent(
 // Grow Function
 std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
   const std::list<int>& V = G.getVertices();  // vertices in G
-  std::list<std::shared_ptr<Edge>> E;       // edges in G
+  std::list<std::shared_ptr<Edge>> E;         // edges in G
   for (auto e : G.getEdges()) {
     E.push_back(e);
   }
@@ -196,14 +195,10 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
       vertexSubs;  // unordered_map vertices to subset that contains them
 
   // Time to go tight is alpha*lambda+beta
-  std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>
+  std::unordered_map<std::shared_ptr<Subset>, LinearFunctionPair>
       lin_s;  // a and b values for subsets
-  std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>
+  std::unordered_map<std::shared_ptr<Edge>, LinearFunctionPair>
       lin_e;  // a and b values for edges
-  std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>
-      lin_s_p;  // a and b values for subsets at lambda+
-  std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>
-      lin_e_p;  // a and b values for edges at lambda+
 
   // First create an active subset for each vertex and intialize a_s and b_s
   for (auto v : V) {
@@ -211,13 +206,13 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
     std::shared_ptr<Subset> Sp = std::make_shared<Subset>(v, prize, prize);
     vertexSubs[v] = Sp;
     subsets.push_back(Sp);
-    lin_s[Sp] = {0, 0.5 * prize};  // time_s = 0*lambda+0.5
-    lin_s_p[Sp] = {0, 0.5 * prize};
+    lin_s[Sp] = LinearFunctionPair{{0, 0.5 * prize},
+                                   {0, 0.5 * prize}};  // time_s = 0*lambda+0.5
   }
   // Next initialize a_e and b_e for each edge
   for (auto e : E) {
-    lin_e[e] = {e->getWeight(), 0};  // time_e = w*lambda + 0
-    lin_e_p[e] = {e->getWeight(), 0};
+    lin_e[e] = LinearFunctionPair{
+        {e->getWeight(), 0}, {e->getWeight(), 0}};  // time_e = w*lambda + 0
   }
 
   while (true) {
@@ -227,13 +222,11 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
     std::shared_ptr<Subset> min_s = NULL;  // First subset to go tight
     std::shared_ptr<Edge> min_e = NULL,
                           alt_e = NULL;  // First edge to go tight and alt edge
-    std::vector<double> lin_val = {0,
-                                   0};  // Linear functions for time to go tight
-    std::vector<double> lin_val_p1 = {0, 0},
-                        lin_val_p2 = {
-                            0, 0};  // Linear functions to go tight at lambda+
-    findMinEvent(lambda, subsets, E, vertexSubs, lin_e, lin_s, lin_e_p, lin_s_p,
-                 min_s, min_e, lin_val, alt_e, lin_val_p1, lin_val_p2);
+    LinearFunction lin_val{0, 0};  // Linear functions for time to go tight
+    LinearFunction lin_val_p1{0, 0};
+    LinearFunction lin_val_p2{0, 0};  // Linear functions to go tight at lambda+
+    findMinEvent(lambda, subsets, E, vertexSubs, lin_e, lin_s, min_s, min_e,
+                 lin_val, alt_e, lin_val_p1, lin_val_p2);
 
     // If nothing to go tight - then algorithm is done
     if ((min_s == NULL) && (min_e == NULL)) {
@@ -243,15 +236,15 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
     // Update y_vals and times to go tight
     for (auto s : subsets) {
       if (s->getActive()) {
-        s->setY(s->getY() + lin_val[0] * lambda * (1 - tieeps) + lin_val[1]);
-        lin_s[s][0] -= lin_val[0], lin_s[s][1] -= lin_val[1];
+        s->setY(s->getY() + lin_val.a * lambda * (1 - tieeps) + lin_val.b);
+        lin_s[s].first.a -= lin_val.a, lin_s[s].first.b -= lin_val.b;
 
         // If tied then only raise first linear amount p1
         if (s->getTied()) {
-          lin_s_p[s][0] -= lin_val_p1[0], lin_s_p[s][1] -= lin_val_p1[1];
+          lin_s[s].second.a -= lin_val_p1.a, lin_s[s].second.b -= lin_val_p1.b;
         } else {
-          lin_s_p[s][0] -= (lin_val_p1[0] + lin_val_p2[0]);
-          lin_s_p[s][1] -= (lin_val_p1[1] + lin_val_p2[1]);
+          lin_s[s].second.a -= (lin_val_p1.a + lin_val_p2.a);
+          lin_s[s].second.b -= (lin_val_p1.b + lin_val_p2.b);
         }
       }
     }
@@ -260,22 +253,23 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
       std::shared_ptr<Edge> e = *it;
       if (activeEdge(e, vertexSubs)) {
         double factor = edgeFactor(e, vertexSubs);
-        lin_e[e][0] -= lin_val[0] / factor, lin_e[e][1] -= lin_val[1] / factor;
+        lin_e[e].first.a -= lin_val.a / factor,
+            lin_e[e].first.b -= lin_val.b / factor;
 
         // If parent 1 is tied only raise p1 otherwise p1+p2
         if (vertexSubs[e->getHead()]->getTied()) {
-          lin_e_p[e][0] -= lin_val_p1[0], lin_e_p[e][1] -= lin_val_p1[1];
+          lin_e[e].second.a -= lin_val_p1.a, lin_e[e].second.b -= lin_val_p1.b;
         } else if (vertexSubs[e->getHead()]->getActive()) {
-          lin_e_p[e][0] -= (lin_val_p1[0] + lin_val_p2[0]);
-          lin_e_p[e][1] -= (lin_val_p1[1] + lin_val_p2[1]);
+          lin_e[e].second.a -= (lin_val_p1.a + lin_val_p2.a);
+          lin_e[e].second.b -= (lin_val_p1.b + lin_val_p2.b);
         }
 
         // If parent 2 is tied only raise p1 otherwise p1+p2
         if (vertexSubs[e->getTail()]->getTied()) {
-          lin_e_p[e][0] -= lin_val_p1[0], lin_e_p[e][1] -= lin_val_p1[1];
+          lin_e[e].second.a -= lin_val_p1.a, lin_e[e].second.b -= lin_val_p1.b;
         } else if (vertexSubs[e->getTail()]->getActive()) {
-          lin_e_p[e][0] -= (lin_val_p1[0] + lin_val_p2[0]);
-          lin_e_p[e][1] -= (lin_val_p1[1] + lin_val_p2[1]);
+          lin_e[e].second.a -= (lin_val_p1.a + lin_val_p2.a);
+          lin_e[e].second.b -= (lin_val_p1.b + lin_val_p2.b);
         }
       }
       if (vertexSubs[e->getHead()] == vertexSubs[e->getTail()]) {
@@ -304,9 +298,10 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
       std::shared_ptr<Subset> S2 = vertexSubs[min_e->getTail()];
       std::shared_ptr<Subset> S =
           std::make_shared<Subset>(S1, S2, min_e, alt_e);
-      lin_s[S] = {lin_s[S1][0] + lin_s[S2][0], lin_s[S1][1] + lin_s[S2][1]};
-      lin_s_p[S] = {lin_s_p[S1][0] + lin_s_p[S2][0],
-                    lin_s_p[S1][1] + lin_s_p[S2][1]};
+      lin_s[S].first = {lin_s[S1].first.a + lin_s[S2].first.a,
+                        lin_s[S1].first.b + lin_s[S2].first.b};
+      lin_s[S].second = {lin_s[S1].second.a + lin_s[S2].second.a,
+                         lin_s[S1].second.b + lin_s[S2].second.b};
 
       subsets.remove(S1);
       subsets.remove(S2);

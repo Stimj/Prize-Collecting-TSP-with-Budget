@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "graph.h"
+#include "linear_function.h"
 #include "subset.h"
 
 /* ------------------------- HELPER FUNCTIONS --------------------------*/
@@ -43,13 +44,11 @@ void findMinEvent(
     double lambda, const std::list<std::shared_ptr<Subset>>& subsets,
     std::list<std::shared_ptr<Edge>>& E,
     std::unordered_map<int, std::shared_ptr<Subset>>& vertexSubs,
-    std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>& lin_e,
-    std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>& lin_s,
-    std::unordered_map<std::shared_ptr<Edge>, std::vector<double>>& lin_e_p,
-    std::unordered_map<std::shared_ptr<Subset>, std::vector<double>>& lin_s_p,
+    std::unordered_map<std::shared_ptr<Edge>, LinearFunctionPair>& lin_e,
+    std::unordered_map<std::shared_ptr<Subset>, LinearFunctionPair>& lin_s,
     std::shared_ptr<Subset>& min_s, std::shared_ptr<Edge>& min_e,
-    std::vector<double>& lin_val, std::shared_ptr<Edge>& alt_e,
-    std::vector<double>& lin_val_p1, std::vector<double>& lin_val_p2);
+    LinearFunction& lin_val, std::shared_ptr<Edge>& alt_e,
+    LinearFunction& lin_val_p1, LinearFunction& lin_val_p2);
 
 /* ------------------------- MAIN FUNCTIONS --------------------------*/
 
