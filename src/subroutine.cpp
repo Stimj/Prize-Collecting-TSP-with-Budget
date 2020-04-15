@@ -10,6 +10,8 @@
 
 #include "subroutine.h"
 
+#include <chrono>
+
 double eps = 1.0e-15;   // Level of precision for general ties
 double tieeps = 0.001;  // Level of precisions to count ties
 
@@ -23,10 +25,23 @@ struct EdgeFunctions {
   std::shared_ptr<Subset> p2;
 };
 
+struct CheapTimer {
+  std::chrono::time_point<std::chrono::high_resolution_clock> t0 =
+      std::chrono::high_resolution_clock::now();
+
+  int mark() {
+    int micros = std::chrono::duration_cast<std::chrono::microseconds>(
+                     std::chrono::high_resolution_clock::now() - t0)
+                     .count();
+    t0 = std::chrono::high_resolution_clock::now();
+    return micros;
+  }
+};
+
 // Find min event to occur next
 void findMinEvent(
     double lambda, const std::list<std::shared_ptr<Subset>>& subsets,
-    std::list<EdgeFunctions>& edge_functions,
+    std::vector<EdgeFunctions>& edge_functions,
     std::unordered_map<std::shared_ptr<Subset>, LinearFunctionPair>& lin_s,
     std::shared_ptr<Subset>& min_s, std::shared_ptr<Edge>& min_e,
     std::shared_ptr<Edge>& alt_e, LinearFunction& lin_val,
@@ -92,7 +107,7 @@ void findMinEvent(
       if (((e.p1 == min_e_functions.p1) && (e.p2 == min_e_functions.p2)) ||
           ((e.p1 == min_e_functions.p2) && (e.p2 == min_e_functions.p1))) {
         // Time to go tight for edge e
-        double tight_time = e.second(lambda * (1 + tieeps));
+        double tight_time = factor * e.second(lambda * (1 + tieeps));
 
         // If new min at lambda*(1+tieeps)
         if (tight_time < time_p - eps) {
@@ -107,14 +122,12 @@ void findMinEvent(
     double testp1 = INT_MAX, testp2 = INT_MAX;
     bool tiedp1 = false, tiedp2 = false;
     if (min_e_functions.p1->getActive()) {
-      testp1 =
-          lin_s[min_e_functions.p1].second(lambda * (1 + tieeps));
+      testp1 = lin_s[min_e_functions.p1].second(lambda * (1 + tieeps));
       tiedp1 = (testp1 < time_p - eps);
       min_e_functions.p1->setTied(tiedp1);
     }
     if (min_e_functions.p2->getActive()) {
-      testp2 =
-          lin_s[min_e_functions.p2].second(lambda * (1 + tieeps));
+      testp2 = lin_s[min_e_functions.p2].second(lambda * (1 + tieeps));
       tiedp2 = (testp2 < time_p - eps);
       min_e_functions.p2->setTied(tiedp2);
     }
@@ -173,7 +186,7 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
                                    {0, 0.5 * prize}};  // time_s = 0*lambda+0.5
   }
 
-  std::list<EdgeFunctions> edge_functions;
+  std::vector<EdgeFunctions> edge_functions;
   for (auto e : G.getEdges()) {
     edge_functions.emplace_back(EdgeFunctions{e,
                                               {e->getWeight(), 0.},
@@ -198,6 +211,13 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
 
     // If nothing to go tight - then algorithm is done
     if ((min_s == nullptr) && (min_e == nullptr)) {
+      //     auto t_total = static_cast<double>(t_init + t_find_min + t_yvals +
+      //     t_active_edges + t_merge_subsets);
+      //      std::cout << "getSubsets: init: " << t_init / t_total << "
+      //      find_min: " << t_find_min/t_total << " yvals: " << t_yvals/t_total
+      //      << " active_edges: " << t_active_edges / t_total << "
+      //      merge_subsets: " << t_merge_subsets / t_total << std::endl;
+      // std::cout ///
       return subsets;
     }
 
@@ -288,7 +308,13 @@ std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
         if ((*it).p1 == S1 || (*it).p1 == S2) (*it).p1 = S;
         if ((*it).p2 == S1 || (*it).p2 == S2) (*it).p2 = S;
         if ((*it).p1 == (*it).p2) {
-          it = edge_functions.erase(it);
+          // Erase by swapping with last element and popping the back
+          (*it).edge = edge_functions.back().edge;
+          (*it).first = edge_functions.back().first;
+          (*it).second = edge_functions.back().second;
+          (*it).p1 = edge_functions.back().p1;
+          (*it).p2 = edge_functions.back().p2;
+          edge_functions.pop_back();
         } else {
           ++it;
         }
