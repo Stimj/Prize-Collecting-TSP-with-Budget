@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
          "= {\n";
 
   // Don't generate baseline for large problems
-  int max_nodes = 130;
+  int max_nodes = 500;
 
   for (auto file : kReadableInstances) {
     generateBaseline(file, max_nodes, baseline_database);

@@ -53,4 +53,5 @@ cc_test(
     ],
     deps = [":read_file", ":pd", "@googletest//:gtest_main"],
     data = [":tsplib_benchmarks"],
-  )
+    size = "large",
+)
