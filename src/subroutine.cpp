@@ -46,26 +46,25 @@ void findMinEvent(
     std::shared_ptr<Subset>& min_s, std::shared_ptr<Edge>& min_e,
     std::shared_ptr<Edge>& alt_e, LinearFunction& lin_val,
     LinearFunction& lin_val_p1, LinearFunction& lin_val_p2) {
+
+  // Find minimum event between active subsets and active edges
+  // Iterate through active subsets
   min_e = nullptr;
   min_s = nullptr;
-
-  // Iterate through active subsets
   double time_s = INT_MAX;
-  LinearFunction lin_val_s = {0., 0.};
+  double time_e = INT_MAX;
   for (auto s : subsets) {
     if (!s->getActive()) continue;
 
     double tight_time = lin_s[s].first(lambda * (1 - tieeps));
     if (tight_time < time_s - eps) {  // break ties by slope
       time_s = tight_time;
-      lin_val_s = lin_s[s].first;
+      lin_val = lin_s[s].first;
       min_s = s;
     }
   }
 
   // Iterate through active edges
-  double time_e = INT_MAX;
-  LinearFunction lin_val_e = {0., 0.};
   EdgeFunctions min_e_functions;
   for (auto e : edge_functions) {
     if (e.p1 == e.p2) continue;
@@ -76,22 +75,16 @@ void findMinEvent(
     double tight_time = factor * e.first(lambda * (1 - tieeps));
 
     // If new min
-    if (tight_time < time_e - eps) {
+    if (tight_time < time_s + eps && tight_time < time_e - eps) {
       time_e = tight_time;
-      lin_val_e = {factor * e.first.a, factor * e.first.b};
+      lin_val = {factor * e.first.a, factor * e.first.b};
       min_e_functions = e;
       min_e = e.edge;
     }
   }
 
   // Find which event is first and which tied
-  if (time_e < time_s + eps) {
-    min_s = nullptr;
-    lin_val = lin_val_e;
-  } else {
-    min_e = nullptr;
-    lin_val = lin_val_s;
-  }
+  if (min_e != nullptr) min_s = nullptr;
 
   // If an edge event then we have to check for ties
   lin_val_p1 = {0., 0.}, lin_val_p2 = {lin_val.a, lin_val.b};

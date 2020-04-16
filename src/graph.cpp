@@ -355,7 +355,7 @@ double shortestPath(const Graph &G, int i, int j) {
   // While j is not set
   while (setDist[j] == false) {
     // Find min unmarked
-    int minIndex = INT_MAX, u;
+    int minIndex = INT_MAX, u = 0;
     for (auto v : G.getVertices()) {
       if ((setDist[v] == false) && (distances[v] < minIndex)) {
         u = v;
