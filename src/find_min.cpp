@@ -8,7 +8,7 @@ std::pair<double, std::shared_ptr<Subset>> minSetTime(
   double eps = 1.0e-15;  // Level of precision for general ties
   double time_s = INT_MAX;
   std::shared_ptr<Subset> min_s = nullptr;
-  for (auto s : subsets) {
+  for (const auto& s : subsets) {
     if (!s->getActive()) continue;
 
     double tight_time = lin_s.at(s).first(t);
@@ -28,20 +28,30 @@ std::pair<double, EdgeFunctions> minEdgeTime(
     double upper_bound) {
   double eps = 1.0e-15;  // Level of precision for general ties
   double time_e = upper_bound;
-  EdgeFunctions min_e_functions;
-  for (auto e : edge_functions) {
-    if (e.p1 == e.p2) continue;
+
+  const EdgeFunctions* optimizer = nullptr;
+  for (const auto& e : edge_functions) {
     if (!e.p1->getActive() && !e.p2->getActive()) continue;
+    if (e.p1 == e.p2) continue;
 
     // Time to go tight for edge e
     double tight_time =
         e.first(t) / (int(e.p1->getActive()) + int(e.p2->getActive()));
 
-    // If new min
+    // If new min store constant reference (avoid copying until loop finishes)
     if (tight_time < time_e - eps) {
       time_e = tight_time;
-      min_e_functions = e;
+      optimizer = &e;
     }
+  }
+
+  EdgeFunctions min_e_functions;
+  if (optimizer != nullptr) {
+    min_e_functions.edge = optimizer->edge;
+    min_e_functions.first = optimizer->first;
+    min_e_functions.second = optimizer->second;
+    min_e_functions.p1 = optimizer->p1;
+    min_e_functions.p2 = optimizer->p2;
   }
   return std::make_pair(time_e, min_e_functions);
 }
@@ -97,7 +107,8 @@ void findMinEvent(
   double time_p = factor * min_e_functions.second(lambda * (1 + tieeps));
 
   // Find minimum tied edge between same subsets at lambda*(1+tieeps)
-  for (auto e : edge_functions) {
+  const EdgeFunctions* optimizer = nullptr;
+  for (const auto& e : edge_functions) {
     if (((e.p1 == min_e_functions.p1) && (e.p2 == min_e_functions.p2)) ||
         ((e.p1 == min_e_functions.p2) && (e.p2 == min_e_functions.p1))) {
       // Time to go tight for edge e
@@ -105,11 +116,14 @@ void findMinEvent(
 
       // If new min at lambda*(1+tieeps)
       if (tight_time < time_p - eps) {
-        lin_val_p2 = {factor * e.second.a, factor * e.second.b};
-        alt_e = e.edge;
+        optimizer = &e;
         time_p = tight_time;
       }
     }
+  }
+  if (optimizer != nullptr) {
+    lin_val_p2 = {factor * optimizer->second.a, factor * optimizer->second.b};
+    alt_e = optimizer->edge;
   }
 
   // Find if parents go neutral before the edge at lambda*(1+eps)
