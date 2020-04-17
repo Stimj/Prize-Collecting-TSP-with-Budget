@@ -12,18 +12,7 @@
 
 #include <chrono>
 
-double eps = 1.0e-15;   // Level of precision for general ties
-double tieeps = 0.001;  // Level of precisions to count ties
-
 /* ------------------------- HELPER FUNCTIONS --------------------------*/
-
-struct EdgeFunctions {
-  std::shared_ptr<Edge> edge;
-  LinearFunction first;
-  LinearFunction second;
-  std::shared_ptr<Subset> p1;
-  std::shared_ptr<Subset> p2;
-};
 
 struct CheapTimer {
   std::chrono::time_point<std::chrono::high_resolution_clock> t0 =
@@ -38,127 +27,12 @@ struct CheapTimer {
   }
 };
 
-// Find min event to occur next
-void findMinEvent(
-    double lambda, const std::list<std::shared_ptr<Subset>>& subsets,
-    std::vector<EdgeFunctions>& edge_functions,
-    std::unordered_map<std::shared_ptr<Subset>, LinearFunctionPair>& lin_s,
-    std::shared_ptr<Subset>& min_s, std::shared_ptr<Edge>& min_e,
-    std::shared_ptr<Edge>& alt_e, LinearFunction& lin_val,
-    LinearFunction& lin_val_p1, LinearFunction& lin_val_p2) {
-
-  // Find minimum event between active subsets and active edges
-  // Iterate through active subsets
-  min_e = nullptr;
-  min_s = nullptr;
-  double time_s = INT_MAX;
-  double time_e = INT_MAX;
-  for (auto s : subsets) {
-    if (!s->getActive()) continue;
-
-    double tight_time = lin_s[s].first(lambda * (1 - tieeps));
-    if (tight_time < time_s - eps) {  // break ties by slope
-      time_s = tight_time;
-      lin_val = lin_s[s].first;
-      min_s = s;
-    }
-  }
-
-  // Iterate through active edges
-  EdgeFunctions min_e_functions;
-  for (auto e : edge_functions) {
-    if (e.p1 == e.p2) continue;
-    if (!e.p1->getActive() && !e.p2->getActive()) continue;
-
-    // Time to go tight for edge e
-    double factor = 1.0 / (int(e.p1->getActive()) + int(e.p2->getActive()));
-    double tight_time = factor * e.first(lambda * (1 - tieeps));
-
-    // If new min
-    if (tight_time < time_s + eps && tight_time < time_e - eps) {
-      time_e = tight_time;
-      lin_val = {factor * e.first.a, factor * e.first.b};
-      min_e_functions = e;
-      min_e = e.edge;
-    }
-  }
-
-  // Find which event is first and which tied
-  if (min_e != nullptr) min_s = nullptr;
-
-  // If an edge event then we have to check for ties
-  lin_val_p1 = {0., 0.}, lin_val_p2 = {lin_val.a, lin_val.b};
-  alt_e = min_e;
-  if (min_e != nullptr) {
-    // Find event time for min_e at lambda*(1+tieeps)
-    double factor = 1.0 / (int(min_e_functions.p1->getActive()) +
-                           int(min_e_functions.p2->getActive()));
-    double time_p = factor * min_e_functions.second(lambda * (1 + tieeps));
-
-    // Find minimum tied edge between same subsets at lambda*(1+tieeps)
-    for (auto e : edge_functions) {
-      if (((e.p1 == min_e_functions.p1) && (e.p2 == min_e_functions.p2)) ||
-          ((e.p1 == min_e_functions.p2) && (e.p2 == min_e_functions.p1))) {
-        // Time to go tight for edge e
-        double tight_time = factor * e.second(lambda * (1 + tieeps));
-
-        // If new min at lambda*(1+tieeps)
-        if (tight_time < time_p - eps) {
-          lin_val_p2 = {factor * e.second.a, factor * e.second.b};
-          alt_e = e.edge;
-          time_p = tight_time;
-        }
-      }
-    }
-
-    // Find if parents go neutral before the edge at lambda*(1+eps)
-    double testp1 = INT_MAX, testp2 = INT_MAX;
-    bool tiedp1 = false, tiedp2 = false;
-    if (min_e_functions.p1->getActive()) {
-      testp1 = lin_s[min_e_functions.p1].second(lambda * (1 + tieeps));
-      tiedp1 = (testp1 < time_p - eps);
-      min_e_functions.p1->setTied(tiedp1);
-    }
-    if (min_e_functions.p2->getActive()) {
-      testp2 = lin_s[min_e_functions.p2].second(lambda * (1 + tieeps));
-      tiedp2 = (testp2 < time_p - eps);
-      min_e_functions.p2->setTied(tiedp2);
-    }
-
-    // P1 ties and P2 is active - edge will go tight next
-    if ((tiedp1) && (tiedp2 == false) && (min_e_functions.p2->getActive())) {
-      lin_val_p1 = lin_s[min_e_functions.p1].second;
-      lin_val_p2 = {
-          min_e_functions.second.a - 2 * lin_s[min_e_functions.p1].second.a,
-          min_e_functions.second.b - 2 * lin_s[min_e_functions.p1].second.b};
-    }
-    // P2 ties and P1 is active - edge will go tight next
-    else if ((tiedp2) && (tiedp1 == false) &&
-             (min_e_functions.p1->getActive())) {
-      lin_val_p1 = lin_s[min_e_functions.p2].second;
-      lin_val_p2 = {
-          min_e_functions.second.a - 2 * lin_s[min_e_functions.p2].second.a,
-          min_e_functions.second.b - lin_s[min_e_functions.p2].second.b};
-    }
-    // P1 ties and P2 is inactive or goes neutral right after - edge between two
-    // inactive components
-    else if ((tiedp1) && (testp1 < testp2)) {
-      alt_e = min_e;
-      lin_val_p1 = {lin_val.a, lin_val.b}, lin_val_p2 = {0., 0.};
-    }
-    // P2 ties and P1 is inactive or goes neutral right after - edge between two
-    // inactive components
-    else if ((tiedp2) && (testp2 < testp1)) {
-      alt_e = min_e;
-      lin_val_p1 = {lin_val.a, lin_val.b}, lin_val_p2 = {0., 0.};
-    }
-  }
-}
 
 /* ------------------------- MAIN FUNCTIONS --------------------------*/
 
 // Grow Function
 std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda) {
+  double tieeps = 0.001;  // Level of precisions to count ties
   const std::list<int>& V = G.getVertices();  // vertices in G
 
   std::list<std::shared_ptr<Subset>> subsets;  // list current subsets

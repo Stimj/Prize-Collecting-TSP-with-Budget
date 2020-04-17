@@ -1,6 +1,7 @@
 cc_library(
     name = "pd",
     hdrs = [
+        "include/find_min.h",
         "include/graph.h",
         "include/linear_function.h",
         "include/pd.h",
@@ -9,6 +10,7 @@ cc_library(
         "include/subset.h",
     ],
     srcs = [
+        "src/find_min.cpp",
         "src/graph.cpp",
         "src/pd.cpp",
         "src/subroutine.cpp",
