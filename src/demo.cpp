@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
   std::cout << "Search finished after " << info.walltime << " seconds\n";
   if (info.solution.solved) {
     std::cout << "\nUpper bound: " << info.solution.upper_bound
-              << "\nPrize: " << info.solution.prize << "\nOptimality gap: "
+              << "\nPrize: " << info.solution.prize << "\nOptimality gap (lower is better): "
               << (info.solution.upper_bound - info.solution.prize) /
                      info.solution.upper_bound
               << std::endl;

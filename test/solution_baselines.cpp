@@ -18,6 +18,8 @@ TEST(SolutionBaselines, baseline_database) {
     auto read_success =
         graphFromFile("tsplib_benchmarks/" + kv.first, info.problem.graph,
                       mean_edge_weight, num_nodes);
+    if(num_nodes > 400)
+      continue;
     ASSERT_TRUE(read_success);
     info.problem.budget = kv.second.problem.budget;
 
