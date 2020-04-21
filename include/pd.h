@@ -22,9 +22,10 @@
 #include <vector>
 
 #include "graph.h"
-#include "subroutine.h"
-#include "subset.h"
+#include "grow_subsets.h"
 #include "problem.h"
+#include "prune.h"
+#include "subset.h"
 
 /* ------------------------- HELPER FUNCTIONS--------------------------*/
 

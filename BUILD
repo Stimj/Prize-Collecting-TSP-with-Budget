@@ -1,19 +1,20 @@
 cc_library(
     name = "pd",
     hdrs = [
-        "include/find_min.h",
         "include/graph.h",
+        "include/grow_subsets.h",
         "include/linear_function.h",
         "include/pd.h",
         "include/problem.h",
-        "include/subroutine.h",
+        "include/prune.h",
         "include/subset.h",
     ],
     srcs = [
-        "src/find_min.cpp",
         "src/graph.cpp",
+        "src/grow_subsets.cpp",
+        "src/linear_function.cpp",
         "src/pd.cpp",
-        "src/subroutine.cpp",
+        "src/prune.cpp",
         "src/subset.cpp",
     ],
     strip_include_prefix="include",
@@ -49,6 +50,15 @@ cc_binary(
     deps = [
         ":pd",
         ":read_file",
+    ],
+)
+
+cc_test(
+    name = "linear_functions_test",
+    srcs = ["test/linear_functions_test.cpp"],
+    deps = [
+        ":pd",
+        "@googletest//:gtest_main"
     ],
 )
 

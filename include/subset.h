@@ -57,8 +57,8 @@ class Subset {
   double getY() const { return y_val; }
   double getEdgeTotal() const { return edge_total; }
   int getPrize() const { return prize; }
-  bool getActive() const { return active; }
-  bool getTied() const { return tied; }
+  inline bool getActive() const { return active; }
+  inline bool getTied() const { return tied; }
 
   // Set Functions
   void swapEdges();

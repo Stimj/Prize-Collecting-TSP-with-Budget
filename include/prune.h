@@ -21,18 +21,12 @@
 #include <vector>
 
 #include "graph.h"
-#include "linear_function.h"
 #include "subset.h"
-#include "find_min.h"
 
 /* ------------------------- HELPER FUNCTIONS --------------------------*/
 
 /* ------------------------- MAIN FUNCTIONS --------------------------*/
 
-// Grow Function
-// Runs the PD subroutine with lambda_1 = lambda and returns the end subsets
-
-std::list<std::shared_ptr<Subset>> growSubsets(const Graph& G, double lambda);
 
 // Prune Function
 // Prune inactive components from s and add all non-pruned edges to edges

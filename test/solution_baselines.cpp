@@ -3,7 +3,6 @@
 #include "graph.h"
 #include "pd.h"
 #include "read_file.h"
-#include "subroutine.h"
 #include "subset.h"
 
 // Defines global kBaselineDatabase
