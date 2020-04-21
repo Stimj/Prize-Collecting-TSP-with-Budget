@@ -7,4 +7,4 @@ This repository optimizes some data structures to improve runtime. The algorithm
 ## Quickstart
 * Install [bazel](https://docs.bazel.build/versions/master/install.html)
 * Run the demo: `bazel build -c opt :demo` which will solve the bier127.tsp instance from TSPLIB
-* Run the integration test: `bazel test -c opt :solutions_baseline_test` which will verify that performance has not degraded
+* Run the integration test: `bazel test -c opt :solutions_baseline_test` which will solve instances from the TSPLIB and compare to previous solutions
