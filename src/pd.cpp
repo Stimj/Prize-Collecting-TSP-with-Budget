@@ -18,7 +18,7 @@ void solveInstance(SolverInfo &info) {
   auto t0 = std::chrono::high_resolution_clock::now();
   PD(info.problem.graph, info.problem.budget, info.solution.path,
      info.solution.upper_bound, info.recursions, info.lambda,
-     info.solution.solved, true);
+     info.solution.solved, true, info.problem.time_limit);
   auto t1 = std::chrono::high_resolution_clock::now();
   info.solution.prize = prizeTree(info.problem.graph, info.solution.path);
   info.walltime =
@@ -132,13 +132,14 @@ void findTies(const std::shared_ptr<Subset> &s,
 
 double findLambdaBin(const Graph &G, double D) {
   bool found, swap, reversed;
-  return findLambdaBin(G, D, found, swap, reversed);
+  return findLambdaBin(G, D, found, swap, reversed, static_cast<double>(INT_MAX));
 }
 
 // Use binary search to find theshold value lambda such that PD(lambda-) > 0.5*D
 // and PD(lambda+) <= 0.5D
 double findLambdaBin(const Graph &G, double D, bool &found, bool &swap,
-                     bool &reversed) {
+                     bool &reversed, double max_solve_time) {
+  auto t0 = std::chrono::high_resolution_clock::now();
   // Find initial l and r
   double l, r;
   findLR(G, D, l, r);
@@ -148,6 +149,13 @@ double findLambdaBin(const Graph &G, double D, bool &found, bool &swap,
 
   // Do binary search
   while (l * (1 + diff) <= r) {
+    auto t1 = std::chrono::high_resolution_clock::now();
+    if (static_cast<double>(
+            std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count())/1000000. >
+        max_solve_time) {
+      found = false;
+      return -1;
+    }
     double p = (l + r) / 2;
     // std::cout << "iters: " << iters << " l: " << l << " r: " << r << " p: "
     // << p << "\n";
@@ -283,7 +291,8 @@ std::shared_ptr<Edge> findTree(std::shared_ptr<Subset> &s, double D,
 // Main function
 int PD(const Graph &G, double D, std::list<std::shared_ptr<Edge>> &edges,
        double &upper, int &recursions, double &lambda, bool &found,
-       bool recurse) {
+       bool recurse, double max_solve_time) {
+  auto t0 = std::chrono::high_resolution_clock::now();
   recursions = 1;
 
   std::cout << " -------- Starting Alg ----------- \n";
@@ -305,7 +314,12 @@ int PD(const Graph &G, double D, std::list<std::shared_ptr<Edge>> &edges,
   std::cout << " --------------------------------- \n";
   // Otherwise find threshold lambda
   bool swap = true, reversed = false;
-  lambda = findLambdaBin(G, D, found, swap, reversed);
+  lambda = findLambdaBin(G, D, found, swap, reversed, max_solve_time);
+  if (!found) {
+    upper = 0.0;
+    edges.clear();
+    return 0;
+  }
   std::cout << "- Lambda1: " << lambda << "\n";
   // std::cout << "- Found: " << found << "\n";
 
@@ -356,6 +370,12 @@ int PD(const Graph &G, double D, std::list<std::shared_ptr<Edge>> &edges,
   }
   // std::cout << "- Potential of W: " << p << "\n";
 
+  // Reduce max_solve_time by amount of time this routine took
+
+  auto t1 = std::chrono::high_resolution_clock::now();
+  max_solve_time -= static_cast<double>(
+      std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count());
+
   // Recurse on subgraphs with high potential and return best found
   if (recurse) {
     std::list<std::shared_ptr<Subset>> altS = findHighPotential(subsets, p);
@@ -369,7 +389,7 @@ int PD(const Graph &G, double D, std::list<std::shared_ptr<Edge>> &edges,
         bool test_found;
         std::list<std::shared_ptr<Edge>> test_e;
         PD(H, D, test_e, test_upper, test_recursions, test_lambda, test_found,
-           recurse);  // Recurse
+           recurse, max_solve_time);  // Recurse
         recursions += test_recursions;
 
         // If better than current tree then replace

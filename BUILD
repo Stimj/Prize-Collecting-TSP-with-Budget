@@ -53,6 +53,16 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "characterize_complexity",
+    srcs = ["src/characterize_complexity.cpp"],
+    data = [":tsplib_benchmarks"],
+    deps = [
+        ":pd",
+        ":read_file",
+    ],
+)
+
 cc_test(
     name = "linear_functions_test",
     srcs = ["test/linear_functions_test.cpp"],

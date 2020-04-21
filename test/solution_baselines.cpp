@@ -17,16 +17,16 @@ TEST(SolutionBaselines, baseline_database) {
     auto read_success =
         graphFromFile("tsplib_benchmarks/" + kv.first, info.problem.graph,
                       mean_edge_weight, num_nodes);
+    /* Uncomment to benchmark on only problems up to 400 nodes (same benchmark run in original paper)
     if(num_nodes > 400)
       continue;
+    */
     ASSERT_TRUE(read_success);
     info.problem.budget = kv.second.problem.budget;
 
     // Now solve the problem
     solveInstance(info);
-
     ASSERT_TRUE(info.solution.solved);
-    // Check solution against problem:
 
     // Upper bound should not increase
     ASSERT_LE(info.solution.upper_bound - kv.second.solution.upper_bound, 0.001);

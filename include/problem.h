@@ -9,6 +9,8 @@
 struct Problem {
   Graph graph;
   double budget;
+  // Maximum time to run solver before terminating
+  double time_limit;
 };
 
 struct Solution {

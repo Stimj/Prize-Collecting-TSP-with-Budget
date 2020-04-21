@@ -55,7 +55,7 @@ double findLambdaBin(const Graph &G, double D);
 // Use binary search to find theshold value lambda such that PD(lambda-) > 0.5*D
 // and PD(lambda+) <= 0.5D
 double findLambdaBin(const Graph &G, double D, bool &found, bool &swap,
-                     bool &reversed);
+                     bool &reversed, double max_solve_time);
 
 // Find tree within 0.5*D and save to edges
 // Tree is formed by pruning edges in reverseDelete(s) which starts > 0.5*D
@@ -70,4 +70,4 @@ std::shared_ptr<Edge> findTree(std::shared_ptr<Subset> &s, double D,
 // not you recurse The function returns the number of visited vertices
 int PD(const Graph &G, double D, std::list<std::shared_ptr<Edge>> &edges,
        double &upper, int &recursions, double &lambda, bool &found,
-       bool recurse = true);
+       bool recurse = true, double max_solve_time = INT_MAX);
