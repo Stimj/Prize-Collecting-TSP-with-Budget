@@ -20,8 +20,7 @@ Edge::Edge(int h, int t, double w) {
 }
 
 // Delete an edge
-Edge::~Edge() {
-}
+Edge::~Edge() {}
 
 // Find the other end of an edge
 int Edge::getOther(int id) {
@@ -62,8 +61,7 @@ Vertex::Vertex(int i, int p) {
 }
 
 // Delete a vertex
-Vertex::~Vertex() {
-}
+Vertex::~Vertex() {}
 
 // Add an edge to the list of neighbors
 void Vertex::addEdge(std::shared_ptr<Edge> e) {
@@ -308,8 +306,9 @@ double getTourLength(const Graph &G, const std::vector<int> &tour) {
 }
 
 // DFS
-void DFS(std::list<std::shared_ptr<Edge>> &edges, std::unordered_map<int, bool> &visited,
-         std::vector<int> &tour, int v) {
+void DFS(std::list<std::shared_ptr<Edge>> &edges,
+         std::unordered_map<int, bool> &visited, std::vector<int> &tour,
+         int v) {
   // Mark v as visited and add to tour
   visited[v] = true;
   tour.push_back(v);

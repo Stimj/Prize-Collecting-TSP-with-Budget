@@ -1,4 +1,19 @@
 cc_library(
+    name = "json",
+    hdrs = [
+        "include/external/json.hpp",
+        "include/to_json.h",
+    ],
+    srcs = [
+        "src/to_json.cpp",
+    ],
+    deps = [
+        ":pd",
+    ],
+    strip_include_prefix="include",
+)
+
+cc_library(
     name = "pd",
     hdrs = [
         "include/graph.h",
@@ -95,4 +110,16 @@ cc_test(
         "@googletest//:gtest_main"
     ],
     size = "large",
+)
+
+cc_test(
+    name = "json_test",
+    srcs = [
+        "test/json_test.cpp",
+    ],
+    deps = [
+        ":pd",
+        ":json",
+        "@googletest//:gtest_main"
+    ],
 )

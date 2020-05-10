@@ -103,6 +103,7 @@ std::ostream &operator<<(std::ostream &out, const Subset &S) {
   return out;
 }
 
+
 /* -------------------------FUNCTIONS--------------------------*/
 
 // Find max potential subset among list of subsets and parents of these subsets

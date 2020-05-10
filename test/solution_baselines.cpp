@@ -23,6 +23,7 @@ TEST(SolutionBaselines, baseline_database) {
     */
     ASSERT_TRUE(read_success);
     info.problem.budget = kv.second.problem.budget;
+    info.problem.time_limit = 300;
 
     // Now solve the problem
     solveInstance(info);
