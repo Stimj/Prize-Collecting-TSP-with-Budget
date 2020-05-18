@@ -87,14 +87,16 @@ void findLR(const Graph &G, double D, double &l, double &r) {
   r = G.getPrize() / (min_w) + 1;
 
   // Check that l and r satisfy properties
-  std::list<std::shared_ptr<Subset>> subsetsL = growSubsets(G, l);
+  GrowSubsets g;
+  std::list<std::shared_ptr<Subset>> subsetsL = g.build(G, l);
   double weight_l = reverseDelete(subsetsL, true);
   if (weight_l <= 0.5 * D) {
     std::cout << l << " , " << weight_l << "\n";
     throw std::invalid_argument("Left point not satisfied");
   }
 
-  std::list<std::shared_ptr<Subset>> subsetsR = growSubsets(G, r);
+  GrowSubsets g2;
+  std::list<std::shared_ptr<Subset>> subsetsR = g2.build(G, r);
   double weight_r = reverseDelete(subsetsR, false);
   if (weight_r >= 0.5 * D) {
     std::cout << r << " , " << weight_r << "\n";
@@ -160,7 +162,8 @@ double findLambdaBin(const Graph &G, double D, bool &found, bool &swap,
     // std::cout << "iters: " << iters << " l: " << l << " r: " << r << " p: "
     // << p << "\n";
     iters += 1;
-    std::list<std::shared_ptr<Subset>> subsets = growSubsets(G, p);
+    GrowSubsets g;
+    std::list<std::shared_ptr<Subset>> subsets = g.build(G, p);
     double wminus = reverseDelete(subsets, false),
            wplus = reverseDelete(subsets, true, true);
     double wplusalt = reverseDelete(subsets, true, false);  // don't swap edges
@@ -324,7 +327,8 @@ int PD(const Graph &G, double D, std::list<std::shared_ptr<Edge>> &edges,
   // std::cout << "- Found: " << found << "\n";
 
   // Then find largest subsets
-  std::list<std::shared_ptr<Subset>> subsets = growSubsets(G, lambda);
+  GrowSubsets g;
+  std::list<std::shared_ptr<Subset>> subsets = g.build(G, lambda);
   // If reversed (wplus > 0.5*D) then we need to start with reversed edges
   if (reversed) {
     for (auto t : subsets) {
