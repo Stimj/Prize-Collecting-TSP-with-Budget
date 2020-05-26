@@ -29,7 +29,7 @@ jobs:
     - name: Run tests
       run: bazel test -c opt //...
 
-    - name: Clang-format
+    - name: Clangformat
     - uses: DoozyX/clang-format-lint-action@v0.5
       with:
         source: './src ./test ./include'
