@@ -1,20 +1,28 @@
 cc_library(
     name = "json",
-    hdrs = [
-        "include/external/json.hpp",
-        "include/to_json.h",
-    ],
     srcs = [
         "src/to_json.cpp",
     ],
+    hdrs = [
+        "include/to_json.h",
+    ],
+    strip_include_prefix = "include",
     deps = [
         ":pd",
+        "@json//:lib",
     ],
-    strip_include_prefix="include",
 )
 
 cc_library(
     name = "pd",
+    srcs = [
+        "src/graph.cpp",
+        "src/grow_subsets.cpp",
+        "src/linear_function.cpp",
+        "src/pd.cpp",
+        "src/prune.cpp",
+        "src/subset.cpp",
+    ],
     hdrs = [
         "include/graph.h",
         "include/grow_subsets.h",
@@ -24,34 +32,32 @@ cc_library(
         "include/prune.h",
         "include/subset.h",
     ],
-    srcs = [
-        "src/graph.cpp",
-        "src/grow_subsets.cpp",
-        "src/linear_function.cpp",
-        "src/pd.cpp",
-        "src/prune.cpp",
-        "src/subset.cpp",
-    ],
-    strip_include_prefix="include",
+    strip_include_prefix = "include",
 )
 
 cc_library(
-    name="read_file",
-    hdrs = ["include/read_file.h"],
+    name = "read_file",
     srcs = ["src/read_file.cpp"],
-    strip_include_prefix="include",
+    hdrs = [
+        "include/problem.h",
+        "include/read_file.h",
+    ],
+    strip_include_prefix = "include",
     deps = [":pd"],
 )
 
 filegroup(
-    name="tsplib_benchmarks",
+    name = "tsplib_benchmarks",
     srcs = glob(["tsplib_benchmarks/*"]),
 )
 
 cc_binary(
     name = "demo",
     srcs = ["src/demo.cpp"],
-    data = [":tsplib_benchmarks"],
+    data = [
+        ":tsplib_benchmarks",
+        "@OPLib//:instances",
+    ],
     deps = [
         ":pd",
         ":read_file",
@@ -83,33 +89,36 @@ cc_test(
     srcs = ["test/linear_functions_test.cpp"],
     deps = [
         ":pd",
-        "@googletest//:gtest_main"
+        "@googletest//:gtest_main",
     ],
 )
 
 cc_test(
     name = "read_files_test",
     srcs = ["test/read_file_test.cpp"],
-    data = [":tsplib_benchmarks"],
+    data = [
+        ":tsplib_benchmarks",
+        "@OPLib//:instances",
+    ],
     deps = [
         ":read_file",
-        "@googletest//:gtest_main"
+        "@googletest//:gtest_main",
     ],
 )
 
 cc_test(
     name = "solution_baselines_test",
+    size = "large",
     srcs = [
-        "test/solution_baselines.cpp",
         "test/baseline_database.h",
+        "test/solution_baselines.cpp",
     ],
     data = [":tsplib_benchmarks"],
     deps = [
         ":pd",
         ":read_file",
-        "@googletest//:gtest_main"
+        "@googletest//:gtest_main",
     ],
-    size = "large",
 )
 
 cc_test(
@@ -118,8 +127,8 @@ cc_test(
         "test/json_test.cpp",
     ],
     deps = [
-        ":pd",
         ":json",
-        "@googletest//:gtest_main"
+        ":pd",
+        "@googletest//:gtest_main",
     ],
 )

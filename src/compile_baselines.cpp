@@ -1,11 +1,12 @@
+#include <fstream>
 #include <iostream>
 #include <list>
 #include <string>
 #include <vector>
 
-#include "graph.h"
-#include "pd.h"
-#include "read_file.h"
+#include <graph.h>
+#include <pd.h>
+#include <read_file.h>
 
 const std::vector<std::string> kReadableInstances{
     "a280.tsp",     "ali535.tsp",   "att48.tsp",     "att532.tsp",
@@ -25,19 +26,18 @@ const std::vector<std::string> kReadableInstances{
     "ts225.tsp",    "tsp225.tsp",   "u159.tsp",      "u2319.tsp",
     "u574.tsp",     "u724.tsp",     "ulysses16.tsp", "ulysses22.tsp"};
 
-void generateBaseline(const std::string& filename, int max_nodes,
+void generateBaseline(const std::string& filename, size_t max_nodes,
                       std::ofstream& baseline_database) {
   SolverInfo info;
+  if (!loadProblem("tsplib_benchmarks/" + filename, info.problem)) return;
+  if (info.problem.graph.getVertices().size() > max_nodes) return;
 
-  double mean_edge_weight;
-  int num_nodes;
-  // read the graph from the file and get some stats from it
-  auto success = graphFromFile("tsplib_benchmarks/" + filename,
-                               info.problem.graph, mean_edge_weight, num_nodes);
-  if (!success || num_nodes > max_nodes) return;
+  if (info.problem.budget < 0.0) {
+    std::list<std::shared_ptr<Edge>> mst;
+    info.problem.budget = 0.5 * info.problem.graph.MST(mst);
+  }
 
-  std::list<std::shared_ptr<Edge>> mst;
-  info.problem.budget = 0.5 * info.problem.graph.MST(mst);
+  info.problem.time_limit = 500;  // maximum seconds to let the solver run
 
   solveInstance(info);
   // Log information to a file

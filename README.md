@@ -10,3 +10,5 @@ This repository optimizes some data structures to improve runtime. The algorithm
 * Run the integration test: `bazel test -c opt :solutions_baseline_test` which will solve instances from the TSPLIB and compare to previous solutions (takes about 5 minutes).
 
 *Note the current implementation is not quite the same as in the paper, so the guarantee doesn't apply. We're working on that (see issue #4).
+
+[![Actions Status](https://github.com/Stimj/Prize-Collecting-TSP-with-Budget/workflows/C/C++%20CI/badge.svg)](https://github.com/Stimj/Prize-Collecting-TSP-with-Budget/actions)

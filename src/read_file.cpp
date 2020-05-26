@@ -6,7 +6,16 @@
 //
 //
 
-#include "read_file.h"
+#include <stdio.h>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <unordered_map>
+#include <vector>
+
+#include <read_file.h>
+#include <graph.h>
 
 std::vector<std::string> tokenize(const std::string &str,
                                   const std::string &delimiters) {
@@ -36,6 +45,7 @@ struct Header {
   std::string display_data_type;
   std::string data_section;
   int dimension;
+  int cost_limit;
 };
 
 struct NodeCoord {
@@ -44,7 +54,7 @@ struct NodeCoord {
   int y;
 };
 
-Header readHeader(const std::string& filename) {
+Header readHeader(const std::string &filename) {
   std::ifstream input_file(filename);
   Header header;
   std::string line;
@@ -55,7 +65,8 @@ Header readHeader(const std::string& filename) {
       return header;
     }
 
-    if(line.rfind("NODE_COORD_SECTION", 0) == 0 || line.rfind("EDGE_WEIGHT_SECTION", 0) == 0) {
+    if (line.rfind("NODE_COORD_SECTION", 0) == 0 ||
+        line.rfind("EDGE_WEIGHT_SECTION", 0) == 0) {
       header.data_section = line;
       continue;
     }
@@ -79,6 +90,8 @@ Header readHeader(const std::string& filename) {
       header.edge_weight_type = words[1];
     } else if (words[0].rfind("DISPLAY_DATA_TYPE", 0) == 0) {
       header.display_data_type = words[1];
+    } else if (words[0].rfind("COST_LIMIT", 0) == 0) {
+      header.cost_limit = std::atoi(words[1].c_str());
     } else {
       std::cout << "Warning: Ignored token in preamble:\n" << line << std::endl;
     }
@@ -92,7 +105,34 @@ void printHeader(const Header &header) {
             << "\nEDGE_WEIGHT_TYPE: " << header.edge_weight_type
             << "\nDISPLAY_DATA_TYPE: " << header.display_data_type
             << "\nDATA_SECTION: " << header.data_section
-            << "\nDIMENSION: " << header.dimension << std::endl << std::endl;
+            << "\nDIMENSION: " << header.dimension << std::endl
+            << std::endl;
+}
+
+std::vector<int> readDepotSection(const std::string &filename) {
+  std::ifstream input_file(filename);
+
+  std::string line;
+  std::vector<int> depots;
+
+  // Skip to NODE_COORD_SECTION
+  while (std::getline(input_file, line)) {
+    if (line.empty()) {
+      std::cout << "Error: DEPOT_SECTION not found\n";
+      return {};
+    }
+    if (line.compare("DEPOT_SECTION") == 0) break;
+  }
+  while (std::getline(input_file, line)) {
+    std::istringstream iss(line);
+    int node_id;
+    iss >> node_id;
+    if (node_id != -1)
+      depots.emplace_back(node_id);
+    else
+      break;
+  }
+  return depots;
 }
 
 double readNodeCoordSection(const std::string &filename, Graph &graph) {
@@ -137,8 +177,36 @@ double readNodeCoordSection(const std::string &filename, Graph &graph) {
   return total_edge_weight / edges_added;
 }
 
+int readNodeScoreSection(const std::string &filename, Graph &graph) {
+  std::ifstream input_file(filename);
+
+  std::string line;
+  auto num_nodes = 0;
+
+  // Skip to NODE_SCORE_SECTION
+  while (std::getline(input_file, line)) {
+    if (line.empty()) {
+      std::cout << "Error: NODE_SCORE_SECTION not found\n";
+      return 0;
+    }
+    if (line.compare("NODE_SCORE_SECTION") == 0) break;
+  }
+
+  while (std::getline(input_file, line)) {
+    if (line.compare("DEPOT_SECTION") == 0) break;
+    std::istringstream iss(line);
+    int node_id, score;
+    iss >> node_id >> score;
+    graph.addVertex(node_id, score);
+    num_nodes++;
+  }
+  return num_nodes;
+}
+
 bool graphFromFile(const std::string &filename, Graph &graph,
-                   double &mean_edge_weight, int &num_nodes) {
+                   double &mean_edge_weight, int &num_nodes, int &cost_limit,
+                   std::vector<int> &depots) {
+  cost_limit = -1;
   // Test that file exists
   {
     std::ifstream infile(filename);
@@ -162,9 +230,33 @@ bool graphFromFile(const std::string &filename, Graph &graph,
       }
       mean_edge_weight = readNodeCoordSection(filename, graph);
       if (mean_edge_weight <= 0.0) {
+        std::cout << " Invalid mean edge weight " << mean_edge_weight
+                  << " <= 0\n";
         num_nodes = 0;
         return false;
       }
+    } else {
+      std::cout << "Unsupported data section: " << header.data_section
+                << std::endl;
+      num_nodes = 0;
+      return false;
+    }
+  } else if (header.type.rfind("OP", 0) == 0) {
+    cost_limit = header.cost_limit;
+    if (header.data_section.rfind("NODE_COORD_SECTION", 0) == 0) {
+      num_nodes = readNodeScoreSection(filename, graph);
+      if (num_nodes == 0) {
+        std::cout << "Error reading node scores\n";
+        return false;
+      }
+      mean_edge_weight = readNodeCoordSection(filename, graph);
+      if (mean_edge_weight <= 0.0) {
+        std::cout << " Invalid mean edge weight " << mean_edge_weight
+                  << " <= 0\n";
+        num_nodes = 0;
+        return false;
+      }
+      depots = readDepotSection(filename);
     } else {
       std::cout << "Unsupported data section: " << header.data_section
                 << std::endl;
@@ -177,4 +269,13 @@ bool graphFromFile(const std::string &filename, Graph &graph,
     return false;
   }
   return true;
+}
+
+bool loadProblem(const std::string &filename, Problem &problem) {
+  double mean_edge_weight = 0;
+  int num_nodes = 0, budget;
+  auto success = graphFromFile(filename, problem.graph, mean_edge_weight,
+                               num_nodes, budget, problem.roots);
+  problem.budget = static_cast<double>(budget);
+  return success;
 }

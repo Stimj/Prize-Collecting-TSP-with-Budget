@@ -23,22 +23,24 @@
 int main(int argc, char* argv[]) {
   // Configure solution parameters:
   SolverInfo info;
-  info.problem.time_limit = 500;  // maximum seconds to let the solver run
 
-  // Read graph from file and load to SolverInfo.problem.graph
-  std::string file = "bier127.tsp";
-  double mean_edge_weight;
-  int num_nodes;
-  if (!graphFromFile("tsplib_benchmarks/" + file, info.problem.graph,
-                     mean_edge_weight, num_nodes)) {
+  // Read graph from file and load to SolverInfo.problem
+  std::string file = "bier127";
+  if (!loadProblem("external/OPLib/instances/gen2/" + file + "-gen2-50.oplib",
+                   info.problem)) {
     std::cout << "Error reading tsp file\n";
     return 1;
   }
 
-  // Pick budget for the problem by solving minimum spanning tree problem.
-  // This can be replaced with any positive budget.
-  std::list<std::shared_ptr<Edge>> mst;
-  info.problem.budget = 0.5 * info.problem.graph.MST(mst);
+  info.problem.time_limit = 500;  // maximum seconds to let the solver run
+
+  // Use cost limit defined by the problem if available
+  if (info.problem.budget < 0.0) {
+    // Pick budget for the problem by solving minimum spanning tree problem.
+    // This can be replaced with any positive budget.
+    std::list<std::shared_ptr<Edge>> mst;
+    info.problem.budget = 0.5 * info.problem.graph.MST(mst);
+  }
 
   // Solve the problem and print stats
   solveInstance(info);

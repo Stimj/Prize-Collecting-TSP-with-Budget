@@ -9,6 +9,9 @@
 struct Problem {
   Graph graph;
   double budget;
+  std::string name;
+  // Optional: If non-empty, the solution tour must contain one of these nodes
+  std::vector<int> roots;
   // Maximum time to run solver before terminating
   double time_limit;
 };

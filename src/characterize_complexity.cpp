@@ -1,11 +1,12 @@
+#include <fstream>
 #include <iostream>
 #include <list>
 #include <string>
 #include <vector>
 
-#include "graph.h"
-#include "pd.h"
-#include "read_file.h"
+#include <graph.h>
+#include <pd.h>
+#include <read_file.h>
 
 // Sort in order of nodes
 const std::vector<std::string> kReadableInstances{
@@ -29,14 +30,8 @@ const std::vector<std::string> kReadableInstances{
 bool solveProblem(const std::string& filename, double max_solve_time,
                   std::ofstream& statistics_file) {
   SolverInfo info;
+  if (!loadProblem("tsplib_benchmarks/" + filename, info.problem)) return true;
   info.problem.time_limit = max_solve_time;
-
-  double mean_edge_weight;
-  int num_nodes;
-  if (!graphFromFile("tsplib_benchmarks/" + filename, info.problem.graph,
-                     mean_edge_weight, num_nodes))
-    return true;
-
   std::list<std::shared_ptr<Edge>> mst;
   info.problem.budget = 0.5 * info.problem.graph.MST(mst);
 
@@ -44,10 +39,10 @@ bool solveProblem(const std::string& filename, double max_solve_time,
 
   // Record information to csv output file
   // num_nodes, solution_time, upper_bound, prize, solution_found, file_name
-  statistics_file << num_nodes << ", " << info.walltime << ", "
-                  << info.solution.upper_bound << ", " << info.solution.prize
-                  << ", " << info.solution.solved << ", " << filename
-                  << std::endl;
+  statistics_file << info.problem.graph.getVertices().size() << ", "
+                  << info.walltime << ", " << info.solution.upper_bound << ", "
+                  << info.solution.prize << ", " << info.solution.solved << ", "
+                  << filename << std::endl;
 
   std::cout << "Search finished after " << info.walltime << " seconds\n";
   std::cout << "Solution found? " << info.solution.solved

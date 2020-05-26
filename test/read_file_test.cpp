@@ -1,24 +1,19 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
-#include "read_file.h"
+#include <read_file.h>
 
-int nodesInGraph(const std::string& filename, bool expect_success=true) {
-  // Read graph file and return number of nodes
-  Graph G;
-  double meanEdgeWeight;
-  int numNodes;
-  std::string name;
-  auto success = graphFromFile(filename, G, meanEdgeWeight, numNodes);
-  EXPECT_EQ(expect_success, success);
-  return numNodes;
+size_t nodesInGraph(const std::string& filename, bool expect_success = true) {
+  Problem problem;
+  EXPECT_EQ(loadProblem(filename, problem), expect_success);
+  return problem.graph.getVertices().size();
 }
 
 TEST(ReadFile, invalid_file) {
   EXPECT_EQ(0, nodesInGraph("does_not_exist", false));
 }
-TEST(ReadFile, edge_weight_tsp_files) {
+
+TEST(ReadFile, DISABLED_edge_weight_tsp_files) {
   // These files use edge weights formats that are not parsed by read_files
-  /*
   EXPECT_EQ(29, nodesInGraph("tsplib_benchmarks/bayg29.tsp"));
   EXPECT_EQ(29, nodesInGraph("tsplib_benchmarks/bays29.tsp"));
   EXPECT_EQ(158, nodesInGraph("tsplib_benchmarks/brazil158.tsp"));
@@ -33,12 +28,10 @@ TEST(ReadFile, edge_weight_tsp_files) {
   EXPECT_EQ(48, nodesInGraph("tsplib_benchmarks/hk48.tsp"));
   EXPECT_EQ(561, nodesInGraph("tsplib_benchmarks/pa561.tsp"));
   EXPECT_EQ(42, nodesInGraph("tsplib_benchmarks/swiss42.tsp"));
-  */
 }
 
-TEST(ReadFile, large_tsp_instances) {
+TEST(ReadFile, DISABLED_large_tsp_instances) {
   // These files are too large to be parsed reliably
-  /*
   EXPECT_EQ(14051, nodesInGraph("tsplib_benchmarks/brd14051.tsp"));
   EXPECT_EQ(15112, nodesInGraph("tsplib_benchmarks/d15112.tsp"));
   EXPECT_EQ(18512, nodesInGraph("tsplib_benchmarks/d18512.tsp"));
@@ -46,16 +39,13 @@ TEST(ReadFile, large_tsp_instances) {
   EXPECT_EQ(85900, nodesInGraph("tsplib_benchmarks/pla85900.tsp"));
   EXPECT_EQ(11849, nodesInGraph("tsplib_benchmarks/rl11849.tsp"));
   EXPECT_EQ(13509, nodesInGraph("tsplib_benchmarks/usa13509.tsp"));
- */
-
 }
 
-TEST(ReadFile, node_coord_tsp_files) {
+TEST(ReadFile, DISABLED_node_coord_tsp_files) {
   EXPECT_EQ(280, nodesInGraph("tsplib_benchmarks/a280.tsp"));
   EXPECT_EQ(535, nodesInGraph("tsplib_benchmarks/ali535.tsp"));
   EXPECT_EQ(48, nodesInGraph("tsplib_benchmarks/att48.tsp"));
   EXPECT_EQ(532, nodesInGraph("tsplib_benchmarks/att532.tsp"));
-  EXPECT_EQ(52, nodesInGraph("tsplib_benchmarks/berlin52.tsp"));
   EXPECT_EQ(52, nodesInGraph("tsplib_benchmarks/berlin52.tsp"));
   EXPECT_EQ(127, nodesInGraph("tsplib_benchmarks/bier127.tsp"));
   EXPECT_EQ(14, nodesInGraph("tsplib_benchmarks/burma14.tsp"));
@@ -141,3 +131,169 @@ TEST(ReadFile, node_coord_tsp_files) {
   EXPECT_EQ(1748, nodesInGraph("tsplib_benchmarks/vm1748.tsp"));
 }
 
+TEST(ReadFile, oplib_gen1_files) {
+  EXPECT_EQ(280,
+            nodesInGraph("external/OPLib/instances/gen1/a280-gen1-50.oplib"));
+  EXPECT_EQ(535,
+            nodesInGraph("external/OPLib/instances/gen1/ali535-gen1-50.oplib"));
+  EXPECT_EQ(48,
+            nodesInGraph("external/OPLib/instances/gen1/att48-gen1-50.oplib"));
+  EXPECT_EQ(532,
+            nodesInGraph("external/OPLib/instances/gen1/att532-gen1-50.oplib"));
+  EXPECT_EQ(
+      52, nodesInGraph("external/OPLib/instances/gen1/berlin52-gen1-50.oplib"));
+  EXPECT_EQ(
+      52, nodesInGraph("external/OPLib/instances/gen1/berlin52-gen1-50.oplib"));
+  EXPECT_EQ(
+      127, nodesInGraph("external/OPLib/instances/gen1/bier127-gen1-50.oplib"));
+  EXPECT_EQ(1291,
+            nodesInGraph("external/OPLib/instances/gen1/d1291-gen1-50.oplib"));
+  EXPECT_EQ(1655,
+            nodesInGraph("external/OPLib/instances/gen1/d1655-gen1-50.oplib"));
+  EXPECT_EQ(198,
+            nodesInGraph("external/OPLib/instances/gen1/d198-gen1-50.oplib"));
+  EXPECT_EQ(2103,
+            nodesInGraph("external/OPLib/instances/gen1/d2103-gen1-50.oplib"));
+  EXPECT_EQ(493,
+            nodesInGraph("external/OPLib/instances/gen1/d493-gen1-50.oplib"));
+  EXPECT_EQ(657,
+            nodesInGraph("external/OPLib/instances/gen1/d657-gen1-50.oplib"));
+  EXPECT_EQ(1000, nodesInGraph(
+                      "external/OPLib/instances/gen1/dsj1000-gen1-50.oplib"));
+  EXPECT_EQ(101,
+            nodesInGraph("external/OPLib/instances/gen1/eil101-gen1-50.oplib"));
+  EXPECT_EQ(51,
+            nodesInGraph("external/OPLib/instances/gen1/eil51-gen1-50.oplib"));
+  EXPECT_EQ(76,
+            nodesInGraph("external/OPLib/instances/gen1/eil76-gen1-50.oplib"));
+  EXPECT_EQ(1400,
+            nodesInGraph("external/OPLib/instances/gen1/fl1400-gen1-50.oplib"));
+  EXPECT_EQ(1577,
+            nodesInGraph("external/OPLib/instances/gen1/fl1577-gen1-50.oplib"));
+  EXPECT_EQ(3795,
+            nodesInGraph("external/OPLib/instances/gen1/fl3795-gen1-50.oplib"));
+  EXPECT_EQ(417,
+            nodesInGraph("external/OPLib/instances/gen1/fl417-gen1-50.oplib"));
+  EXPECT_EQ(4461, nodesInGraph(
+                      "external/OPLib/instances/gen1/fnl4461-gen1-50.oplib"));
+  EXPECT_EQ(262,
+            nodesInGraph("external/OPLib/instances/gen1/gil262-gen1-50.oplib"));
+  EXPECT_EQ(137,
+            nodesInGraph("external/OPLib/instances/gen1/gr137-gen1-50.oplib"));
+  EXPECT_EQ(202,
+            nodesInGraph("external/OPLib/instances/gen1/gr202-gen1-50.oplib"));
+  EXPECT_EQ(229,
+            nodesInGraph("external/OPLib/instances/gen1/gr229-gen1-50.oplib"));
+  EXPECT_EQ(431,
+            nodesInGraph("external/OPLib/instances/gen1/gr431-gen1-50.oplib"));
+  EXPECT_EQ(666,
+            nodesInGraph("external/OPLib/instances/gen1/gr666-gen1-50.oplib"));
+  EXPECT_EQ(96,
+            nodesInGraph("external/OPLib/instances/gen1/gr96-gen1-50.oplib"));
+  EXPECT_EQ(
+      100, nodesInGraph("external/OPLib/instances/gen1/kroA100-gen1-50.oplib"));
+  EXPECT_EQ(
+      150, nodesInGraph("external/OPLib/instances/gen1/kroA150-gen1-50.oplib"));
+  EXPECT_EQ(
+      200, nodesInGraph("external/OPLib/instances/gen1/kroA200-gen1-50.oplib"));
+  EXPECT_EQ(
+      100, nodesInGraph("external/OPLib/instances/gen1/kroB100-gen1-50.oplib"));
+  EXPECT_EQ(
+      150, nodesInGraph("external/OPLib/instances/gen1/kroB150-gen1-50.oplib"));
+  EXPECT_EQ(
+      200, nodesInGraph("external/OPLib/instances/gen1/kroB200-gen1-50.oplib"));
+  EXPECT_EQ(
+      100, nodesInGraph("external/OPLib/instances/gen1/kroC100-gen1-50.oplib"));
+  EXPECT_EQ(
+      100, nodesInGraph("external/OPLib/instances/gen1/kroD100-gen1-50.oplib"));
+  EXPECT_EQ(
+      100, nodesInGraph("external/OPLib/instances/gen1/kroE100-gen1-50.oplib"));
+  EXPECT_EQ(105,
+            nodesInGraph("external/OPLib/instances/gen1/lin105-gen1-50.oplib"));
+  EXPECT_EQ(318,
+            nodesInGraph("external/OPLib/instances/gen1/lin318-gen1-50.oplib"));
+  EXPECT_EQ(1379, nodesInGraph(
+                      "external/OPLib/instances/gen1/nrw1379-gen1-50.oplib"));
+  EXPECT_EQ(654,
+            nodesInGraph("external/OPLib/instances/gen1/p654-gen1-50.oplib"));
+  EXPECT_EQ(1173, nodesInGraph(
+                      "external/OPLib/instances/gen1/pcb1173-gen1-50.oplib"));
+  EXPECT_EQ(3038, nodesInGraph(
+                      "external/OPLib/instances/gen1/pcb3038-gen1-50.oplib"));
+  EXPECT_EQ(442,
+            nodesInGraph("external/OPLib/instances/gen1/pcb442-gen1-50.oplib"));
+  EXPECT_EQ(7397, nodesInGraph(
+                      "external/OPLib/instances/gen1/pla7397-gen1-50.oplib"));
+  EXPECT_EQ(1002,
+            nodesInGraph("external/OPLib/instances/gen1/pr1002-gen1-50.oplib"));
+  EXPECT_EQ(107,
+            nodesInGraph("external/OPLib/instances/gen1/pr107-gen1-50.oplib"));
+  EXPECT_EQ(124,
+            nodesInGraph("external/OPLib/instances/gen1/pr124-gen1-50.oplib"));
+  EXPECT_EQ(136,
+            nodesInGraph("external/OPLib/instances/gen1/pr136-gen1-50.oplib"));
+  EXPECT_EQ(144,
+            nodesInGraph("external/OPLib/instances/gen1/pr144-gen1-50.oplib"));
+  EXPECT_EQ(152,
+            nodesInGraph("external/OPLib/instances/gen1/pr152-gen1-50.oplib"));
+  EXPECT_EQ(226,
+            nodesInGraph("external/OPLib/instances/gen1/pr226-gen1-50.oplib"));
+  EXPECT_EQ(2392,
+            nodesInGraph("external/OPLib/instances/gen1/pr2392-gen1-50.oplib"));
+  EXPECT_EQ(264,
+            nodesInGraph("external/OPLib/instances/gen1/pr264-gen1-50.oplib"));
+  EXPECT_EQ(299,
+            nodesInGraph("external/OPLib/instances/gen1/pr299-gen1-50.oplib"));
+  EXPECT_EQ(439,
+            nodesInGraph("external/OPLib/instances/gen1/pr439-gen1-50.oplib"));
+  EXPECT_EQ(76,
+            nodesInGraph("external/OPLib/instances/gen1/pr76-gen1-50.oplib"));
+  EXPECT_EQ(195,
+            nodesInGraph("external/OPLib/instances/gen1/rat195-gen1-50.oplib"));
+  EXPECT_EQ(575,
+            nodesInGraph("external/OPLib/instances/gen1/rat575-gen1-50.oplib"));
+  EXPECT_EQ(783,
+            nodesInGraph("external/OPLib/instances/gen1/rat783-gen1-50.oplib"));
+  EXPECT_EQ(99,
+            nodesInGraph("external/OPLib/instances/gen1/rat99-gen1-50.oplib"));
+  EXPECT_EQ(100,
+            nodesInGraph("external/OPLib/instances/gen1/rd100-gen1-50.oplib"));
+  EXPECT_EQ(400,
+            nodesInGraph("external/OPLib/instances/gen1/rd400-gen1-50.oplib"));
+  EXPECT_EQ(1304,
+            nodesInGraph("external/OPLib/instances/gen1/rl1304-gen1-50.oplib"));
+  EXPECT_EQ(1323,
+            nodesInGraph("external/OPLib/instances/gen1/rl1323-gen1-50.oplib"));
+  EXPECT_EQ(1889,
+            nodesInGraph("external/OPLib/instances/gen1/rl1889-gen1-50.oplib"));
+  EXPECT_EQ(5915,
+            nodesInGraph("external/OPLib/instances/gen1/rl5915-gen1-50.oplib"));
+  EXPECT_EQ(5934,
+            nodesInGraph("external/OPLib/instances/gen1/rl5934-gen1-50.oplib"));
+  EXPECT_EQ(70,
+            nodesInGraph("external/OPLib/instances/gen1/st70-gen1-50.oplib"));
+  EXPECT_EQ(225,
+            nodesInGraph("external/OPLib/instances/gen1/ts225-gen1-50.oplib"));
+  EXPECT_EQ(225,
+            nodesInGraph("external/OPLib/instances/gen1/tsp225-gen1-50.oplib"));
+  EXPECT_EQ(1060,
+            nodesInGraph("external/OPLib/instances/gen1/u1060-gen1-50.oplib"));
+  EXPECT_EQ(1432,
+            nodesInGraph("external/OPLib/instances/gen1/u1432-gen1-50.oplib"));
+  EXPECT_EQ(159,
+            nodesInGraph("external/OPLib/instances/gen1/u159-gen1-50.oplib"));
+  EXPECT_EQ(1817,
+            nodesInGraph("external/OPLib/instances/gen1/u1817-gen1-50.oplib"));
+  EXPECT_EQ(2152,
+            nodesInGraph("external/OPLib/instances/gen1/u2152-gen1-50.oplib"));
+  EXPECT_EQ(2319,
+            nodesInGraph("external/OPLib/instances/gen1/u2319-gen1-50.oplib"));
+  EXPECT_EQ(574,
+            nodesInGraph("external/OPLib/instances/gen1/u574-gen1-50.oplib"));
+  EXPECT_EQ(724,
+            nodesInGraph("external/OPLib/instances/gen1/u724-gen1-50.oplib"));
+  EXPECT_EQ(1084,
+            nodesInGraph("external/OPLib/instances/gen1/vm1084-gen1-50.oplib"));
+  EXPECT_EQ(1748,
+            nodesInGraph("external/OPLib/instances/gen1/vm1748-gen1-50.oplib"));
+}

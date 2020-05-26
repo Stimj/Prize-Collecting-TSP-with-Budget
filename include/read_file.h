@@ -10,17 +10,9 @@
 
 #pragma once
 
-#include <cmath>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <stdio.h>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
-#include "graph.h"
+#include <problem.h>
 
-// Reads TSPLIB instance from the given file.
-// Returns true if parsing was successful.
-bool graphFromFile(const std::string &filename, Graph &graph, double &mean_edge_weight, int &num_nodes);
+// Reads data from TSPLIB or OPLIB files.
+bool loadProblem(const std::string& filename, Problem& problem);
