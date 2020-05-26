@@ -1,0 +1,30 @@
+name: C/C++ CI
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  unit_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Setup bazel
+      uses: jwlawson/actions-setup-bazel@v1.0
+      id: setup
+      with:
+        bazel-version: '2.0.0'
+        github-api-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build
+      run: bazel build -c opt //...
+
+    - name: Run demo
+      run: bazel run -c opt //:demo
+
+    - name: Run tests
+      run: bazel test -c opt //...
